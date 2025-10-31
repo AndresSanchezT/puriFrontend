@@ -1,9 +1,11 @@
 import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { AdminDashboardLayoutComponent } from './admin-dashboard/layouts/admin-dashboard-layout/admin-dashboard-layout';
+
+
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [AdminDashboardLayoutComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
