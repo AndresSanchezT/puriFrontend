@@ -25,7 +25,7 @@ const emptyProduct: Producto = {
   tipo: '',
   descripcion: '',
   fechaCreacion: '',
-  fechaActualizacion: ''
+  fechaActualizacion: '',
 };
 
 @Injectable({
@@ -36,6 +36,15 @@ export class ProductoService {
 
   private productsCache = new Map<string, ResponseProduct>();
   private productCache = new Map<number, Producto>();
+  private allProductsCache = new Map<string, Producto[]>();
+
+  getAllProductos(): Observable<Producto[]> {
+    const key = 'all-products';
+    return this.http.get<Producto[]>(`${baseUrl}/productos/all`).pipe(
+      tap((resp) => console.log(resp)),
+      tap((resp) => this.allProductsCache.set(key, resp))
+    );
+  }
 
   getProducts(options: Options): Observable<ResponseProduct> {
     const { limit = 9, offset = 0, tipo = '' } = options;
@@ -93,5 +102,9 @@ export class ProductoService {
     });
 
     console.log('Caché actualizado');
+  }
+
+  delete(id: number) {
+   return this.http.delete<void>(`${baseUrl}/productos/${id}`);
   }
 }

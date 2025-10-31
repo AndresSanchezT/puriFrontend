@@ -14,5 +14,6 @@
     "angular-page": {
       "skipChangeDetectionOnPush": true
     }
-  }
+  },
+  "todo-tree.tree.scanMode": "workspace"
 }

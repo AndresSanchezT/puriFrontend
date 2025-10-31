@@ -1,32 +1,393 @@
+<div class="p-8">
+  <div class="flex justify-between items-center mb-8">
+    <div>
+      <h1 class="text-[28px] text-[#2c3e50] mb-1 font-semibold">Gestionar Productos</h1>
+      <p class="text-sm text-[#7f8c8d]">Administra el catálogo de productos del sistema</p>
+    </div>
 
-<h1 class="text-2xl font-bold">Listado de productos</h1>
-<h3 class="text-lg">
-  Total de productos
-  <span class="text-accent">{{ productsResource.value()?.count }}</span>
-</h3>
+    <!-- {user?.rol === 'administrador' && ( -->
+    <button
+      class="px-6 py-3 bg-[#3498db] text-white rounded-md text-sm font-semibold transition-all duration-300 hover:bg-[#2980b9] hover:-translate-y-0.5 hover:shadow-lg"
+      (click)="handleOpenModal('create')"
+    >
+      + Nuevo Producto
+    </button>
+  </div>
+</div>
 
-<div class="divider"></div>
+@if (hasError() && !showModal()) {
+<div class="bg-red-100 text-red-800 px-4 py-3 rounded border border-red-200 mb-5">
+  {{ hasError() }}
+</div>
+} @if (success() && !showModal()) {
+<div class="bg-green-100 text-green-800 px-4 py-3 rounded border border-green-200 mb-5">
+  {{ success() }}
+</div>
+}
 
-<div class="flex gap-2 items-center h-20">
-  <app-pagination
-    [pages]="productsResource.value()?.page ?? 0"
-    [currentPage]="paginationService.currentPage()"
+<!-- Estadísticas -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+  <!-- Total Productos -->
+  <div
+    class="bg-white p-5 rounded-xl shadow-md flex items-center gap-4 transition-transform hover:-translate-y-1 hover:shadow-lg"
+  >
+    <div
+      class="text-[32px] bg-gray-100 w-[60px] h-[60px] flex items-center justify-center rounded-full"
+    >
+      📦
+    </div>
+    <div class="flex flex-col">
+      <span class="text-xs text-gray-500 mb-1">Total Productos</span>
+      <span class="text-2xl font-bold text-gray-800">{{ productos().length }}</span>
+    </div>
+  </div>
+
+  <!-- Disponibles -->
+  <div
+    class="bg-white p-5 rounded-xl shadow-md flex items-center gap-4 transition-transform hover:-translate-y-1 hover:shadow-lg"
+  >
+    <div
+      class="text-[32px] bg-gray-100 w-[60px] h-[60px] flex items-center justify-center rounded-full"
+    >
+      ✅
+    </div>
+    <div class="flex flex-col">
+      <span class="text-xs text-gray-500 mb-1">Disponibles</span>
+      <span class="text-2xl font-bold text-gray-800">
+        {{ productosDisponibles() }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Stock Bajo -->
+  <div
+    class="bg-white p-5 rounded-xl shadow-md flex items-center gap-4 transition-transform hover:-translate-y-1 hover:shadow-lg"
+  >
+    <div
+      class="text-[32px] bg-gray-100 w-[60px] h-[60px] flex items-center justify-center rounded-full"
+    >
+      ⚠️
+    </div>
+    <div class="flex flex-col">
+      <span class="text-xs text-gray-500 mb-1">Stock Bajo</span>
+      <span class="text-2xl font-bold text-gray-800"> {{ productosStockBajo() }} </span>
+    </div>
+  </div>
+
+  <!-- Agotados -->
+  <div
+    class="bg-white p-5 rounded-xl shadow-md flex items-center gap-4 transition-transform hover:-translate-y-1 hover:shadow-lg"
+  >
+    <div
+      class="text-[32px] bg-gray-100 w-[60px] h-[60px] flex items-center justify-center rounded-full"
+    >
+      ❌
+    </div>
+    <div class="flex flex-col">
+      <span class="text-xs text-gray-500 mb-1">Agotados</span>
+      <span class="text-2xl font-bold text-gray-800"> <{{ productosAgotados() }} </span>
+    </div>
+  </div>
+</div>
+
+<div class="relative mb-8">
+  <input
+    #searchInput
+    type="text"
+    placeholder="Buscar por nombre, código o descripción..."
+    [value]="searchTerm()"
+    (input)="searchTerm.set(searchInput.value)"
+    class="w-full py-3 pr-11 pl-4 border-2 border-[#e0e0e0] rounded-md text-sm transition-colors duration-300 focus:outline-none focus:border-[#3498db]"
   />
 
-  <select
-    class="select select-bordered w-32"
-    (change)="productsPerPage.set(+selectPerPage.value)"
-    #selectPerPage
-  >
-    <option value="10">10</option>
-    <option value="20">20</option>
-    <option value="50">50</option>
-    <option value="100">100</option>
-  </select>
-
-  <div class="flex flex-1"></div>
-
-  <button class="btn btn-primary" routerLink="/admin/products/new">
-    Nuevo producto
-  </button>
+  <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[18px] text-[#7f8c8d]">🔍</span>
 </div>
+
+<div class="bg-white rounded-xl shadow-md overflow-hidden">
+  <table class="w-full border-collapse">
+    <thead>
+      <tr>
+        <th>Código</th>
+        <th>Producto</th>
+        <th>Precio</th>
+        <th>Stock Actual</th>
+        <th>Stock Mínimo</th>
+        <th>Unidad</th>
+        <th>Estado Stock</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+        <!-- {user?.rol === 'administrador' && <th>Acciones</th>} -->
+      </tr>
+    </thead>
+    <tbody>
+      @if (productosFiltrados().length === 0) {
+      <tr>
+        <td colspan="8" class="text-center py-8 text-[#7f8c8d] italic">
+          {{ searchTerm() ? 'No se encontraron productos' : 'No hay productos registrados' }}
+        </td>
+      </tr>
+      } @else { @for (producto of productosFiltrados(); track producto.id) {
+      <tr>
+        <td>
+          <span class="font-mono font-bold text-[#7f8c8d] bg-gray-100 px-2 py-1 rounded text-xs">
+            {{ producto.codigo }}
+          </span>
+        </td>
+        <td>
+          <div class="flex flex-col gap-1">
+            <strong class="text-[#2c3e50]">{{ producto.nombre }}</strong>
+            @if (producto.descripcion) {
+            <span class="text-xs text-[#7f8c8d]">{{ producto.descripcion }}</span>
+            }
+          </div>
+        </td>
+        <td>
+          <span class="text-[#27ae60] font-bold">S/ {{ producto.precio }}</span>
+        </td>
+        <td>
+          <span class="text-[#3498db] font-bold text-base">{{ producto.stockActual }}</span>
+        </td>
+        <td>{{ producto.stockMinimo }}</td>
+        <td>{{ producto.unidadMedida }}</td>
+        <td>
+          <span
+            class="inline-block px-3 py-1.5 rounded-full text-[11px] font-bold uppercase"
+            [ngClass]="{
+              'bg-red-100 text-red-800': producto.stockActual === 0,
+              'bg-yellow-100 text-yellow-800':
+                producto.stockActual > 0 && producto.stockActual <= producto.stockMinimo,
+              'bg-green-100 text-green-800': producto.stockActual > producto.stockMinimo
+            }"
+          >
+            {{
+              producto.stockActual === 0
+                ? 'Agotado'
+                : producto.stockActual <= producto.stockMinimo
+                ? 'Bajo'
+                : 'OK'
+            }}
+          </span>
+        </td>
+        <td>
+          <span
+            class="inline-block px-3 py-1.5 rounded-full text-[11px] font-bold uppercase"
+            [ngClass]="{
+              'not-visited:bg-green-100 text-green-800': producto.estado === 'activo',
+              'bg-red-100 text-red-800': producto.estado === 'inactivo'
+            }"
+          >
+            {{ producto.estado === 'activo' ? 'Activo' : 'Inactivo' }}
+          </span>
+        </td>
+        <td>
+          <div class="flex gap-2">
+            <button
+              class="px-2.5 py-1.5 rounded bg-[#3498db] text-white text-lg transition-all duration-300 hover:bg-[#2980b9] hover:scale-110"
+              (click)="handleOpenModal('edit', producto)"
+              title="Editar"
+            >
+              ✏️
+            </button>
+            <button
+              class="px-2.5 py-1.5 rounded bg-[#e74c3c] text-white text-lg transition-all duration-300 hover:bg-[#c0392b] hover:scale-110"
+              (click)="handleDelete(producto.id)"
+              title="Eliminar"
+            >
+              🗑️
+            </button>
+          </div>
+        </td>
+      </tr>
+      } }
+    </tbody>
+  </table>
+</div>
+
+<!-- ✅ Modal Crear / Editar Producto -->
+@if (showModal()) {
+<div
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-1000 p-5"
+  (click)="handleCloseModal()"
+>
+  <div
+    class="bg-white rounded-xl max-w-[700px] w-full max-h-[90vh] overflow-y-auto shadow-[0_10px_40px_rgba(0,0,0,0.3)]"
+    (click)="$event.stopPropagation()"
+  >
+    <!-- 🧱 Encabezado -->
+    <div class="flex justify-between items-center px-6 py-5 border-b border-gray-200">
+      <h2 class="text-[22px] font-semibold text-[#2c3e50] m-0">
+        {{ modalMode() === 'create' ? 'Nuevo Producto' : 'Editar Producto' }}
+      </h2>
+      <button
+        class="bg-transparent border-0 text-2xl cursor-pointer text-gray-500 w-[30px] h-[30px] flex items-center justify-center rounded-full transition-all duration-300 hover:bg-gray-100 hover:text-[#2c3e50]"
+        (click)="handleCloseModal()"
+      >
+        ✕
+      </button>
+    </div>
+
+    <!-- 🧾 Formulario -->
+    <form (ngSubmit)="handleSubmit()">
+      <div class="p-6">
+        <!-- Mensajes -->
+        @if (hasError()) {
+        <div class="bg-red-100 text-red-800 p-4 rounded-md border border-red-200 mb-5">
+          {{ hasError() }}
+        </div>
+        } @if (success()) {
+        <div class="bg-green-100 text-green-800 p-4 rounded-md border border-green-200 mb-5">
+          {{ success() }}
+        </div>
+        }
+
+        <!-- Grid del formulario -->
+        <div class="grid grid-cols-2 gap-5">
+          <!-- Código -->
+          <div class="flex flex-col">
+            <label class="font-semibold text-[#2c3e50] mb-2 text-sm">Código *</label>
+            <input
+              type="text"
+              name="codigo"
+              [ngModel]="dataForm().codigo"
+              (ngModelChange)="updateFormField('codigo', $event)"
+              required
+              placeholder="Ej: PROD001"
+              [disabled]="modalMode() === 'edit'"
+              class="px-4 py-3 border-2 border-gray-200 rounded-md text-sm transition-colors duration-300 focus:outline-none focus:border-[#3498db] disabled:bg-gray-100 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          <!-- Nombre -->
+          <div class="flex flex-col">
+            <label class="font-semibold text-[#2c3e50] mb-2 text-sm">Nombre *</label>
+            <input
+              type="text"
+              name="nombre"
+              [ngModel]="dataForm().nombre"
+              (ngModelChange)="updateFormField('nombre', $event)"
+              required
+              placeholder="Ej: Coca Cola 1.5L"
+              class="px-4 py-3 border-2 border-gray-200 rounded-md text-sm transition-colors duration-300 focus:outline-none focus:border-[#3498db]"
+            />
+          </div>
+
+          <!-- Descripción -->
+          <div class="flex flex-col col-span-2">
+            <label class="font-semibold text-[#2c3e50] mb-2 text-sm">Descripción</label>
+            <textarea
+              name="descripcion"
+              [ngModel]="dataForm().descripcion"
+              (ngModelChange)="updateFormField('descripcion', $event)"
+              placeholder="Descripción del producto"
+              rows="3"
+              class="resize-y px-4 py-3 border-2 border-gray-200 rounded-md text-sm transition-colors duration-300 focus:outline-none focus:border-[#3498db]"
+            ></textarea>
+          </div>
+
+          <!-- Precio Unitario -->
+          <div class="flex flex-col">
+            <label class="font-semibold text-[#2c3e50] mb-2 text-sm">Precio Unitario *</label>
+            <input
+              type="number"
+              name="precio_unitario"
+              [ngModel]="dataForm().precio_unitario"
+              (ngModelChange)="updateFormField('precio_unitario', $event)"
+              required
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+              class="px-4 py-3 border-2 border-gray-200 rounded-md text-sm transition-colors duration-300 focus:outline-none focus:border-[#3498db]"
+            />
+          </div>
+
+          <!-- Stock Actual -->
+          <div class="flex flex-col">
+            <label class="font-semibold text-[#2c3e50] mb-2 text-sm">Stock Actual *</label>
+            <input
+              type="number"
+              name="stock_actual"
+              [ngModel]="dataForm().stock_actual"
+              (ngModelChange)="updateFormField('stock_actual', $event)"
+              required
+              min="0"
+              placeholder="0"
+              class="px-4 py-3 border-2 border-gray-200 rounded-md text-sm transition-colors duration-300 focus:outline-none focus:border-[#3498db]"
+            />
+          </div>
+
+          <!-- Stock Mínimo -->
+          <div class="flex flex-col">
+            <label class="font-semibold text-[#2c3e50] mb-2 text-sm">Stock Mínimo *</label>
+            <input
+              type="number"
+              name="stock_minimo"
+              [ngModel]="dataForm().stock_minimo"
+              (ngModelChange)="updateFormField('stock_minimo', $event)"
+              required
+              min="0"
+              placeholder="10"
+              class="px-4 py-3 border-2 border-gray-200 rounded-md text-sm transition-colors duration-300 focus:outline-none focus:border-[#3498db]"
+            />
+          </div>
+
+          <!-- Unidad de Medida -->
+          <div class="flex flex-col">
+            <label class="font-semibold text-[#2c3e50] mb-2 text-sm">Unidad de Medida *</label>
+            <select
+              name="unidad_medida"
+              [ngModel]="dataForm().unidad_medida"
+              (ngModelChange)="updateFormField('unidad_medida', $event)"
+              required
+              class="px-4 py-3 border-2 border-gray-200 rounded-md text-sm transition-colors duration-300 focus:outline-none focus:border-[#3498db]"
+            >
+              <option value="UNIDAD">Unidad</option>
+              <option value="CAJA">Caja</option>
+              <option value="PACK">Pack</option>
+              <option value="KG">Kilogramo</option>
+              <option value="LITRO">Litro</option>
+            </select>
+          </div>
+
+          <!-- Estado -->
+          <div class="flex flex-col">
+            <label class="font-semibold text-[#2c3e50] mb-2 text-sm">Estado</label>
+            <select
+              name="estado"
+              [ngModel]="dataForm().estado"
+              (ngModelChange)="updateFormField('estado', $event)"
+              class="px-4 py-3 border-2 border-gray-200 rounded-md text-sm transition-colors duration-300 focus:outline-none focus:border-[#3498db]"
+            >
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ✅ Botones -->
+      <div class="flex justify-end gap-4 px-6 py-5 border-t border-gray-200">
+        <button
+          type="button"
+          (click)="handleCloseModal()"
+          class="px-6 py-3 bg-gray-200 text-[#2c3e50] rounded-md font-semibold text-sm cursor-pointer transition-all duration-300 hover:bg-gray-400"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          [disabled]="loading()"
+          class="px-6 py-3 bg-[#3498db] text-white rounded-md font-semibold text-sm cursor-pointer transition-all duration-300 hover:bg-[#2980b9] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(52,152,219,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{
+            loading()
+              ? 'Guardando...'
+              : modalMode() === 'create'
+              ? 'Crear Producto'
+              : 'Guardar Cambios'
+          }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+}

@@ -15,6 +15,7 @@ import { GestionarProductos } from './pages/productos/gestionar-productos/gestio
 import { GenerarReportes } from './pages/reportes/generar-reportes/generar-reportes';
 import { Dashboard } from './pages/dashboard/dashboard';
 
+
 export const adminDashboardRoutes: Routes = [
   {
     path: '',
