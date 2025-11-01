@@ -40,8 +40,12 @@ export class ProductoService {
 
   getAllProductos(): Observable<Producto[]> {
     const key = 'all-products';
+    if (this.allProductsCache.has(key)) {
+      const cached = this.allProductsCache.get(key) ?? [];
+      return of(cached);
+    }
     return this.http.get<Producto[]>(`${baseUrl}/productos/all`).pipe(
-      tap((resp) => console.log(resp)),
+      tap((resp) => console.log('respuesta', resp)),
       tap((resp) => this.allProductsCache.set(key, resp))
     );
   }
@@ -105,6 +109,10 @@ export class ProductoService {
   }
 
   delete(id: number) {
-   return this.http.delete<void>(`${baseUrl}/productos/${id}`);
+    return this.http.delete<void>(`${baseUrl}/productos/${id}`);
+  }
+
+  clearCache() {
+    this.allProductsCache.clear();
   }
 }

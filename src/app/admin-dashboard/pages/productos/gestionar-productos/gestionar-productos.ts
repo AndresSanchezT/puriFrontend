@@ -15,10 +15,10 @@ interface ProductoForm {
   codigo: string;
   nombre: string;
   descripcion: string;
-  precio_unitario: number | string;
-  stock_actual: number | string;
-  stock_minimo: number | string;
-  unidad_medida: string;
+  precio: number | string;
+  stockActual: number | string;
+  stockMinimo: number | string;
+  unidadMedida: string;
   estado: string;
 }
 
@@ -38,15 +38,17 @@ export class GestionarProductos {
   loading = signal(false);
   modalMode = signal('create');
   productoSelected = signal<Producto | null>(null);
-  dataForm = signal<ProductoForm>({
+  dataForm = signal<Partial<Producto>>({
     codigo: '',
     nombre: '',
-    descripcion: '',
-    precio_unitario: 0,
-    stock_actual: 0,
-    stock_minimo: 0,
-    unidad_medida: '',
+    precio: 0,
+    stockActual: 0,
+    stockMinimo: 0,
+    unidadMedida: '',
     estado: '',
+    descripcion: '',
+    fechaCreacion: '',
+    fechaActualizacion: '',
   });
   searchTerm = signal('');
 
@@ -124,41 +126,34 @@ export class GestionarProductos {
     this.clearMessages();
     this.loading.set(true);
 
-    const data = this.dataForm();
+    const isCreate = this.modalMode() === 'create';
+    const now = new Date().toISOString().split('T')[0];
+    const data = {
+      ...this.dataForm(),
+      ...(isCreate ? { fechaCreacion: now } : { fechaActualizacion: now }),
+    };
 
-    if (this.modalMode() === 'create') {
-      // Crear producto
-      this.productService.createProduct(data).subscribe({
-        next: () => {
-          this.success.set('Producto creado exitosamente');
-          this.loadProductos();
-          this.autoCloseModal();
-        },
-        error: (err) => {
-          this.hasError.set(err?.error?.message || 'Error al crear producto');
-          this.loading.set(false);
-        },
-      });
-    } else {
-      // Actualizar producto
-      const id = this.productoSelected()?.id;
-      if (!id) {
-        this.hasError.set('No se encontró el producto a actualizar');
+    const request = isCreate
+      ? this.productService.createProduct(data)
+      : this.productService.updateProduct(this.productoSelected()?.id!, data);
+
+    request.subscribe({
+      next: () => {
+        this.success.set(
+          isCreate ? 'Producto creado exitosamente' : 'Producto actualizado exitosamente'
+        );
+
+        // 🔥 Limpiar el caché antes de recargar
+        this.productService.clearCache();
+
+        this.loadProductos();
+        this.autoCloseModal();
+      },
+      error: (err) => {
+        this.hasError.set(err?.error?.message || 'Error al guardar producto');
         this.loading.set(false);
-        return;
-      }
-      this.productService.updateProduct(id, data).subscribe({
-        next: () => {
-          this.success.set('Producto actualizado exitosamente');
-          this.loadProductos();
-          this.autoCloseModal();
-        },
-        error: (err) => {
-          this.hasError.set(err?.error?.message || 'Error al actualizar producto');
-          this.loading.set(false);
-        },
-      });
-    }
+      },
+    });
   }
   private autoCloseModal() {
     setTimeout(() => {
@@ -175,10 +170,10 @@ export class GestionarProductos {
         codigo: producto.codigo,
         nombre: producto.nombre,
         descripcion: producto.descripcion || '',
-        precio_unitario: producto.precio,
-        stock_actual: producto.stockActual,
-        stock_minimo: producto.stockMinimo,
-        unidad_medida: producto.unidadMedida,
+        precio: producto.precio,
+        stockActual: producto.stockActual,
+        stockMinimo: producto.stockMinimo,
+        unidadMedida: producto.unidadMedida,
         estado: producto.estado,
       });
     } else {
@@ -200,10 +195,10 @@ export class GestionarProductos {
       codigo: '',
       nombre: '',
       descripcion: '',
-      precio_unitario: '',
-      stock_actual: '',
-      stock_minimo: '',
-      unidad_medida: 'UNIDAD',
+      precio: 0,
+      stockActual: 0,
+      stockMinimo: 0,
+      unidadMedida: 'UNIDAD',
       estado: 'activo',
     });
   }
@@ -214,4 +209,5 @@ export class GestionarProductos {
   }
 
   // TODO Añadir paginacion
+  // TODO corregir error de que al hacer click fuera del modal de crea se cierra y los datos ingresados se pierden
 }

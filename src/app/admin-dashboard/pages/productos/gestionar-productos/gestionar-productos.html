@@ -85,7 +85,7 @@
     </div>
     <div class="flex flex-col">
       <span class="text-xs text-gray-500 mb-1">Agotados</span>
-      <span class="text-2xl font-bold text-gray-800"> <{{ productosAgotados() }} </span>
+      <span class="text-2xl font-bold text-gray-800"> {{ productosAgotados() }} </span>
     </div>
   </div>
 </div>
@@ -206,7 +206,7 @@
 <!-- ✅ Modal Crear / Editar Producto -->
 @if (showModal()) {
 <div
-  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-1000 p-5"
+  class="fixed inset-0 bg-black/50 flex items-center justify-center z-1000 p-5"
   (click)="handleCloseModal()"
 >
   <div
@@ -289,9 +289,9 @@
             <label class="font-semibold text-[#2c3e50] mb-2 text-sm">Precio Unitario *</label>
             <input
               type="number"
-              name="precio_unitario"
-              [ngModel]="dataForm().precio_unitario"
-              (ngModelChange)="updateFormField('precio_unitario', $event)"
+              name="precio"
+              [ngModel]="dataForm().precio"
+              (ngModelChange)="updateFormField('precio', $event)"
               required
               step="0.01"
               min="0"
@@ -306,8 +306,8 @@
             <input
               type="number"
               name="stock_actual"
-              [ngModel]="dataForm().stock_actual"
-              (ngModelChange)="updateFormField('stock_actual', $event)"
+              [ngModel]="dataForm().stockActual"
+              (ngModelChange)="updateFormField('stockActual', $event)"
               required
               min="0"
               placeholder="0"
@@ -321,8 +321,8 @@
             <input
               type="number"
               name="stock_minimo"
-              [ngModel]="dataForm().stock_minimo"
-              (ngModelChange)="updateFormField('stock_minimo', $event)"
+              [ngModel]="dataForm().stockMinimo"
+              (ngModelChange)="updateFormField('stockMinimo', $event)"
               required
               min="0"
               placeholder="10"
@@ -335,8 +335,8 @@
             <label class="font-semibold text-[#2c3e50] mb-2 text-sm">Unidad de Medida *</label>
             <select
               name="unidad_medida"
-              [ngModel]="dataForm().unidad_medida"
-              (ngModelChange)="updateFormField('unidad_medida', $event)"
+              [ngModel]="dataForm().unidadMedida"
+              (ngModelChange)="updateFormField('unidadMedida', $event)"
               required
               class="px-4 py-3 border-2 border-gray-200 rounded-md text-sm transition-colors duration-300 focus:outline-none focus:border-[#3498db]"
             >
