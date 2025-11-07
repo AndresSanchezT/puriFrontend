@@ -50,6 +50,8 @@ export class ProductoService {
     );
   }
 
+
+  //TODO AÑADIR PAGINACION
   getProducts(options: Options): Observable<ResponseProduct> {
     const { limit = 9, offset = 0, tipo = '' } = options;
     const key = `${limit}-${offset}-${tipo}`;
@@ -84,7 +86,7 @@ export class ProductoService {
 
   updateProduct(id: number, productLike: Partial<Producto>): Observable<Producto> {
     return this.http
-      .patch<Producto>(`${baseUrl}/productos/${id}`, productLike)
+      .put<Producto>(`${baseUrl}/productos/${id}`, productLike)
       .pipe(tap((product) => this.updateProductCache(product)));
   }
 
@@ -99,8 +101,8 @@ export class ProductoService {
 
     this.productCache.set(productId, producto);
 
-    this.productsCache.forEach((productResponse) => {
-      productResponse.content = productResponse.content.map((currentProduct) =>
+    this.allProductsCache.forEach((productResponse) => {
+     productResponse.map((currentProduct) =>
         currentProduct.id === productId ? producto : currentProduct
       );
     });

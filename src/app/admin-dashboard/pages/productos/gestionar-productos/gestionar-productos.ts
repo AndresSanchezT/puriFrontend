@@ -1,7 +1,6 @@
 import { FormsModule } from '@angular/forms';
 import { Component, computed, inject, signal } from '@angular/core';
 
-import { ActivatedRoute } from '@angular/router';
 import { ProductoService } from '../../../../services/producto-service';
 import { Producto } from '../../../../models/producto.interface';
 import { CommonModule } from '@angular/common';
@@ -28,7 +27,6 @@ interface ProductoForm {
   templateUrl: './gestionar-productos.html',
 })
 export class GestionarProductos {
-  activatedRoute = inject(ActivatedRoute);
   productService = inject(ProductoService);
 
   productos = signal<Producto[]>([]);

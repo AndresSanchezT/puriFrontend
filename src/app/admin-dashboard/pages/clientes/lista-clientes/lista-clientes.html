@@ -1,4 +1,350 @@
-<div class="w-[260px] h-[260px] bg-amber-200">asdasd</div>
-<h1 class="text-3xl">Hola</h1>
+<div class="p-8">
+  <div class="flex justify-between items-center mb-[30px]">
+      <div class="flex flex-col justify-between items-center mb-8">
+        <h1 class="text-[28px] text-[#2c3e50] mb-1 font-semibold">Gestión de Clientes</h1>
+        <p class="text-sm text-[#7f8c8d]">Administra todos los clientes del sistema</p>
+      </div>
+      <!-- {user?.rol === 'administrador' && ( -->
+      <button
+        class="px-6 py-3 bg-[#3498db] text-white rounded-md text-sm font-semibold transition-all duration-300 hover:bg-[#2980b9] hover:-translate-y-0.5 hover:shadow-lg"
+        (click)="handleOpenModal('create')"
+      >
+        + Nuevo Cliente
+      </button>
+  </div>
 
-<p>listaClientes works!</p>
+  @if (hasError() && !showModal()) {
+  <div class="bg-red-100 text-red-800 px-4 py-3 rounded border border-red-200 mb-5">
+    {{ hasError() }}
+  </div>
+  } @if (success() && !showModal()) {
+  <div class="bg-green-100 text-green-800 px-4 py-3 rounded border border-green-200 mb-5">
+    {{ success() }}
+  </div>
+  }
+
+
+  <div class="relative mb-8">
+    <input
+      #searchInput
+      type="text"
+      placeholder="Buscar por nombre, contacto o telefono..."
+      [value]="searchTerm()"
+      (input)="searchTerm.set(searchInput.value)"
+      class="w-full py-3 pr-11 pl-4 border-2 border-[#e0e0e0] rounded-md text-sm transition-colors duration-300 focus:outline-none focus:border-[#3498db]"
+    />
+
+    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[18px] text-[#7f8c8d]">🔍</span>
+  </div>
+  <!-- Estadísticas -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+    <!-- Total Clientes -->
+    <div
+      class="bg-white p-5 rounded-xl shadow-md flex items-center gap-4 transition-transform hover:-translate-y-1 hover:shadow-lg"
+    >
+      <div
+        class="text-[32px] bg-gray-100 w-[60px] h-[60px] flex items-center justify-center rounded-full"
+      >
+        📦
+      </div>
+      <div class="flex flex-col">
+        <span class="text-xs text-gray-500 mb-1">Total clientes</span>
+        <span class="text-2xl font-bold text-gray-800">{{ clientes().length }}</span>
+      </div>
+    </div>
+
+    <!-- Clientes Activos -->
+    <div
+      class="bg-white p-5 rounded-xl shadow-md flex items-center gap-4 transition-transform hover:-translate-y-1 hover:shadow-lg"
+    >
+      <div
+        class="text-[32px] bg-gray-100 w-[60px] h-[60px] flex items-center justify-center rounded-full"
+      >
+        ✅
+      </div>
+      <div class="flex flex-col">
+        <span class="text-xs text-gray-500 mb-1">Activos</span>
+        <span class="text-2xl font-bold text-gray-800">
+          {{ clientesActivos() }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Clientes con deuda -->
+    <div
+      class="bg-white p-5 rounded-xl shadow-md flex items-center gap-4 transition-transform hover:-translate-y-1 hover:shadow-lg"
+    >
+      <div
+        class="text-[32px] bg-gray-100 w-[60px] h-[60px] flex items-center justify-center rounded-full"
+      >
+        ⚠️
+      </div>
+      <div class="flex flex-col">
+        <span class="text-xs text-gray-500 mb-1">Con Deuda</span>
+        <span class="text-2xl font-bold text-gray-800"> {{ clientesConDeuda() }} </span>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="overflow-x-auto">
+    <table class="w-full border-collapse">
+      <thead class="bg-[#f8f9fa]">
+        <tr>
+          <th class="p-[15px] text-left font-semibold text-[#2c3e50] text-sm border-b-2 border-[#e0e0e0]">ID</th>
+          <th class="p-[15px] text-left font-semibold text-[#2c3e50] text-sm border-b-2 border-[#e0e0e0]">Negocio</th>
+          <th class="p-[15px] text-left font-semibold text-[#2c3e50] text-sm border-b-2 border-[#e0e0e0]">Contacto</th>
+          <th class="p-[15px] text-left font-semibold text-[#2c3e50] text-sm border-b-2 border-[#e0e0e0]">Telefono</th>
+          <th class="p-[15px] text-left font-semibold text-[#2c3e50] text-sm border-b-2 border-[#e0e0e0]">Distrito</th>
+          <th class="p-[15px] text-left font-semibold text-[#2c3e50] text-sm border-b-2 border-[#e0e0e0]">Estado</th>
+          <th class="p-[15px] text-left font-semibold text-[#2c3e50] text-sm border-b-2 border-[#e0e0e0]">Deuda</th>
+          <th class="p-[15px] text-left font-semibold text-[#2c3e50] text-sm border-b-2 border-[#e0e0e0]">Acciones</th>
+          <!-- {user?.rol === 'administrador' && <th>Acciones</th>} -->
+        </tr>
+      </thead>
+      <tbody>
+        @if (datosFiltrados().length === 0) {
+        <tr class="border-b border-[#f0f0f0] transition-colors duration-300">
+          <td colspan="8" class="text-center p-[30px] text-[#7f8c8d] italic">
+            {{ searchTerm() ? 'No se encontraron clientes' : 'No hay clientes registrados' }}
+          </td>
+        </tr>
+        } @else { @for (ent of datosFiltrados(); track ent.id) {
+        <tr class="border-b border-[#f0f0f0] transition-colors duration-300 hover:bg-[#f8f9fa]">
+          <td class="p-[15px] text-sm text-[#555]">
+            <span class="font-mono font-bold text-[#7f8c8d] bg-gray-100 px-2 py-1 rounded text-xs">
+              {{ ent.id }}
+            </span>
+          </td>
+          <td class="p-[15px] text-sm text-[#555]">
+            <div class="flex items-center gap-2.5">
+              <div
+                class="w-10 h-10 bg-linear-to-br from-[#667eea] to-[#764ba2] text-white rounded-full flex items-center justify-center font-semibold text-base shrink-0"
+              >
+                {{ ent.nombreNegocio.charAt(0).toUpperCase() }}
+              </div>
+              <div>
+                <div class="font-semibold text-[#2c3e50]">
+                  {{ ent.nombreNegocio }}
+                </div>
+                <div class="text-xs text-[#7f8c8d] mt-[2px]">{{ ent.direccion }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="p-[15px] text-sm text-[#555]">
+            <span class="text-[#27ae60] font-bold">{{ ent.nombreContacto }}</span>
+          </td>
+          <td class="p-[15px] text-sm text-[#555]">
+            <span class="text-[#3498db] font-bold text-base">{{ ent.telefono }}</span>
+          </td>
+          <td class="p-[15px] text-sm text-[#555]">{{ ent.direccion }}</td>
+          <td class="p-[15px] text-sm text-[#555]">
+            <span
+              class="inline-block px-3 py-1.5 rounded-full text-[11px] font-bold uppercase"
+              [ngClass]="{
+                'bg-red-100 text-red-800': ent.estado === 'inactivo',
+                'bg-green-100 text-green-800': ent.estado === 'activo'
+              }"
+            >
+              {{ ent.estado }}
+            </span>
+          </td>
+          <td class="p-[15px] text-sm text-[#555]">
+            <span
+              class="inline-block px-3 py-1.5 rounded-full text-[11px] font-bold uppercase"
+              [ngClass]="{
+                'not-visited:bg-green-100 text-green-800': ent.tieneCredito === false,
+                'bg-red-100 text-red-800': ent.tieneCredito
+              }"
+            >
+              {{ ent.tieneCredito === true ? 'Si' : 'No' }}
+            </span>
+          </td>
+          <td class="p-[15px] text-sm text-[#555]">
+            <div class="flex gap-2">
+              <button
+                class="px-2.5 py-1.5 rounded bg-[#3498db] text-white text-lg transition-all duration-300 hover:bg-[#2980b9] hover:scale-110"
+                (click)="handleOpenModal('edit', ent)"
+                title="Editar"
+              >
+                ✏️
+              </button>
+              <button
+                class="px-2.5 py-1.5 rounded bg-[#e74c3c] text-white text-lg transition-all duration-300 hover:bg-[#c0392b] hover:scale-110"
+                (click)="handleDelete(ent.id)"
+                title="Eliminar"
+              >
+                🗑️
+              </button>
+            </div>
+          </td>
+        </tr>
+        } }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ✅ Modal Crear / Editar Cliente -->
+  @if (showModal()) {
+  <div
+    class="fixed inset-0 bg-black/50 flex items-center justify-center z-1000 p-5"
+    (click)="handleCloseModal()"
+  >
+    <div
+      class="bg-white rounded-xl max-w-[700px] w-full max-h-[90vh] overflow-y-auto shadow-[0_10px_40px_rgba(0,0,0,0.3)]"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- 🧱 Encabezado -->
+      <div class="flex justify-between items-center px-6 py-5 border-b border-gray-200">
+        <h2 class="text-[22px] font-semibold text-[#2c3e50] m-0">
+          {{ modalMode() === 'create' ? 'Nuevo Cliente' : 'Editar Cliente' }}
+        </h2>
+        <button
+          class="bg-transparent border-0 text-2xl cursor-pointer text-gray-500 w-[30px] h-[30px] flex items-center justify-center rounded-full transition-all duration-300 hover:bg-gray-100 hover:text-[#2c3e50]"
+          (click)="handleCloseModal()"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- 🧾 Formulario -->
+      <form (ngSubmit)="handleSubmit()">
+        <div class="p-6">
+          <!-- Mensajes -->
+          @if (hasError()) {
+          <div class="bg-red-100 text-red-800 p-4 rounded-md border border-red-200 mb-5">
+            {{ hasError() }}
+          </div>
+          } @if (success()) {
+          <div class="bg-green-100 text-green-800 p-4 rounded-md border border-green-200 mb-5">
+            {{ success() }}
+          </div>
+          }
+
+          <!-- Grid del formulario -->
+          <div class="grid grid-cols-2 gap-5">
+            <!-- nombre del Negocio -->
+            <div class="flex flex-col">
+              <label class="font-semibold text-[#2c3e50] mb-2 text-sm">Nombre del Negocio</label>
+              <input
+                type="text"
+                name="nombreNegocio"
+                [ngModel]="dataForm().nombreNegocio"
+                (ngModelChange)="updateFormField('nombreNegocio', $event)"
+                required
+                placeholder="Ej: Bodega San José"
+                class="px-4 py-3 border-2 border-gray-200 rounded-md text-sm transition-colors duration-300 focus:outline-none focus:border-[#3498db] disabled:bg-gray-100 disabled:cursor-not-allowed"
+              />
+            </div>
+
+            <!-- Nombre de Contacto -->
+            <div class="flex flex-col">
+              <label class="font-semibold text-[#2c3e50] mb-2 text-sm">Nombre de Contacto</label>
+              <input
+                type="text"
+                name="nombreContacto"
+                [ngModel]="dataForm().nombreContacto"
+                (ngModelChange)="updateFormField('nombreContacto', $event)"
+                required
+                placeholder="Ej: Juan Pérez"
+                class="px-4 py-3 border-2 border-gray-200 rounded-md text-sm transition-colors duration-300 focus:outline-none focus:border-[#3498db]"
+              />
+            </div>
+
+            <!-- Telefono -->
+            <div class="flex flex-col">
+              <label class="font-semibold text-[#2c3e50] mb-2 text-sm">Telefono</label>
+              <input
+                type="text"
+                name="telefono"
+                [ngModel]="dataForm().telefono"
+                (ngModelChange)="updateFormField('telefono', $event)"
+                required
+                placeholder="Ej: 984655784"
+                class="px-4 py-3 border-2 border-gray-200 rounded-md text-sm transition-colors duration-300 focus:outline-none focus:border-[#3498db]"
+              />
+            </div>
+
+            <div class="flex flex-col">
+              <label class="font-semibold text-[#2c3e50] mb-2 text-sm">Direccion</label>
+              <input
+                type="text"
+                name="direccion"
+                [ngModel]="dataForm().direccion"
+                (ngModelChange)="updateFormField('direccion', $event)"
+                required
+                placeholder="Ej: SMP Av. Los Pinos"
+                class="px-4 py-3 border-2 border-gray-200 rounded-md text-sm transition-colors duration-300 focus:outline-none focus:border-[#3498db]"
+              />
+            </div>
+
+            <!-- Referencia -->
+            <div class="flex flex-col col-span-2">
+              <label class="font-semibold text-[#2c3e50] mb-2 text-sm">Referencia</label>
+              <textarea
+                name="descripcion"
+                [ngModel]="dataForm().referencia"
+                (ngModelChange)="updateFormField('referencia', $event)"
+                placeholder="A dos cuadras del parque principal"
+                rows="3"
+                class="resize-y px-4 py-3 border-2 border-gray-200 rounded-md text-sm transition-colors duration-300 focus:outline-none focus:border-[#3498db]"
+              ></textarea>
+            </div>
+
+            <!-- Estado -->
+            <div class="flex flex-col">
+              <label class="font-semibold text-[#2c3e50] mb-2 text-sm">Estado</label>
+              <select
+                name="estado"
+                [ngModel]="dataForm().estado"
+                (ngModelChange)="updateFormField('estado', $event)"
+                class="px-4 py-3 border-2 border-gray-200 rounded-md text-sm transition-colors duration-300 focus:outline-none focus:border-[#3498db]"
+              >
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
+              </select>
+            </div>
+
+            <div class="flex flex-col">
+              <label className="flex items-center gap-2.5 cursor-pointer py-3">
+                <input
+                  type="checkbox"
+                  name="tieneCredito"
+                  [ngModel]="dataForm().tieneCredito"
+                  (ngModelChange)="updateFormField('tieneCredito', $event)"
+                  className="w-5 h-5 cursor-pointer accent-[#3498db]"
+                />
+                <span className="font-medium text-[#2c3e50] text-sm"> Tiene deuda pendiente </span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- ✅ Botones -->
+        <div class="flex justify-end gap-4 px-6 py-5 border-t border-gray-200">
+          <button
+            type="button"
+            (click)="handleCloseModal()"
+            class="px-6 py-3 bg-gray-200 text-[#2c3e50] rounded-md font-semibold text-sm cursor-pointer transition-all duration-300 hover:bg-gray-400"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            [disabled]="loading()"
+            class="px-6 py-3 bg-[#3498db] text-white rounded-md font-semibold text-sm cursor-pointer transition-all duration-300 hover:bg-[#2980b9] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(52,152,219,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{
+              loading()
+                ? 'Guardando...'
+                : modalMode() === 'create'
+                ? 'Crear Cliente'
+                : 'Guardar Cambios'
+            }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  }
+</div>
