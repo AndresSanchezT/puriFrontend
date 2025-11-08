@@ -5,7 +5,6 @@ import { ListaUsuarios } from './pages/usuarios/lista-usuarios/lista-usuarios';
 import { RegistrarUsuario } from './pages/usuarios/registrar-usuario/registrar-usuario';
 import { AsignarCliente } from './pages/clientes/asignar-cliente/asignar-cliente';
 import { ListaVendedores } from './pages/vendedores/lista-vendedores/lista-vendedores';
-import { RegistrarVendedor } from './pages/vendedores/registrar-vendedor/registrar-vendedor';
 import { ListaVisitas } from './pages/visitas/lista-visitas/lista-visitas';
 import { RegistrarVisita } from './pages/visitas/registrar-visita/registrar-visita';
 import { ListaPedidos } from './pages/pedidos/lista-pedidos/lista-pedidos';
@@ -42,12 +41,8 @@ export const adminDashboardRoutes: Routes = [
         component: AsignarCliente,
       },
       {
-        path: 'vendedor/lista',
+        path: 'vendedores/gestionar',
         component: ListaVendedores,
-      },
-      {
-        path: 'vendedor/registrar',
-        component: RegistrarVendedor,
       },
       {
         path: 'visitas/lista',

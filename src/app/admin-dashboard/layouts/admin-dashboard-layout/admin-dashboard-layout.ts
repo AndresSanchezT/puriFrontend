@@ -60,18 +60,6 @@ export class AdminDashboardLayoutComponent {
       icon: '🚗',
       permission: 'buscar_vendedor',
       path: '/admin/vendedores/gestionar',
-      subItems: [
-        {
-          title: 'Lista Vendedores',
-          path: '/admin/vendedor/lista',
-          permission: 'mantener_vendedor',
-        },
-        {
-          title: 'Registrar Vendedor',
-          path: '/admin/vendedor/registrar',
-          permission: 'mantener_vendedor',
-        },
-      ],
     },
     {
       title: 'Visitas',

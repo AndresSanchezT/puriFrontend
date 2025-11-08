@@ -40,6 +40,7 @@ export class RegistrarPedido {
   clienteService = inject(ClienteService);
   productoService = inject(ProductoService);
   pedidoService = inject(PedidoService);
+  
 
   constructor() {
     this.fetchClientes();
