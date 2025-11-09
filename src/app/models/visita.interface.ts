@@ -1,10 +1,12 @@
+import { Cliente } from "./cliente.interface";
 import { Usuario } from "./usuario.interface";
-import { Pedido } from './pedido.interface';
+
 
 export interface Visita {
-  id: number;
-  fechaEntrega: string; // LocalDate → string ISO
-  direccion: string;
-  repartidor: Usuario; // solo usuarios con rol REPARTIDOR/ADMINISTRADOR/REPARTIDOR
-  pedido: Pedido;
+  id?: number;
+  vendedor?: Usuario;
+  cliente?: Cliente;
+  fecha: string;
+  estado: string;
+  observaciones: string;
 }

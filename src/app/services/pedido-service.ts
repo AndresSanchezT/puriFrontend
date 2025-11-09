@@ -3,23 +3,22 @@ import { inject, Injectable } from '@angular/core';
 import { Pedido } from '../models/pedido.interface';
 import { Observable, of, tap } from 'rxjs';
 import { environment } from '../environments/environment';
-import { Usuario } from '../models/usuario.interface';
 
 const baseUrl = environment.baseUrl;
 
 const emptyPedido: Pedido = {
-  id: -1, 
-    vendedorId: 0,
-    clienteId: 0,
-    visitaId: 0,
-    fechaPedido: '',
-    subtotal: 0,
-    igv: 0,
-    total: 0,
-    estado: '',
-    observaciones: '',
-    detallePedidosId: 0,
-}
+  id: -1,
+  id_vendedor: 0,
+  id_cliente: 0,
+  visita_id: 0,
+  fechaPedido: '',
+  subtotal: 0,
+  igv: 0,
+  total: 0,
+  estado: '',
+  observaciones: '',
+  productos: [],
+};
 
 @Injectable({
   providedIn: 'root',
@@ -93,7 +92,7 @@ export class PedidoService {
   updateCache(entidad: Pedido) {
     const entidadId = entidad.id;
 
-    this.pedidosCache.set(entidadId, entidad);
+    this.pedidosCache.set(entidadId!, entidad);
 
     this.allPedidosCache.forEach((res) => {
       res.map((res) => (res.id === entidadId ? entidad : res));

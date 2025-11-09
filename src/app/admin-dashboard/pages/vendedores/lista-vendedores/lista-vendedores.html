@@ -1,1 +1,231 @@
-<p >lista-vendedores works!</p>,
+<div class="container">
+  <div class="header">
+    <div>
+      <h1>Gestionar Vendedores</h1>
+      <p>Administra los vendedores del sistema</p>
+    </div>
+    <button class="btnPrimary" (click)="handleOpenModal('create')">+ Nuevo Vendedor</button>
+  </div>
+
+  @if (hasError() && !showModal()) {
+  <div class="errorMessage">{{ hasError() }}</div>
+  } @if (success() && !showModal()) {
+  <div class="successMessage">{{ success() }}</div>
+  }
+
+  <!-- Estadísticas generales -->
+  <div class="statsCards">
+    <div class="statCard">
+      <div class="statIcon">👥</div>
+      <div class="statContent">
+        <span class="statLabel">Total Vendedores</span>
+        <span class="statValue">{{ vendedores().length }}</span>
+      </div>
+    </div>
+
+    <div class="statCard">
+      <div class="statIcon">✅</div>
+      <div class="statContent">
+        <span class="statLabel">Activos</span>
+        <span class="statValue">
+          {{ vendedoresActivos() }}
+        </span>
+      </div>
+    </div>
+
+    <div class="statCard">
+      <div class="statIcon">📦</div>
+      <div class="statContent">
+        <span class="statLabel">Total Pedidos</span>
+        <span class="statValue">
+          {{ totalPedidos() }}
+        </span>
+      </div>
+    </div>
+
+    <div class="statCard">
+      <div class="statIcon">💰</div>
+      <div class="statContent">
+        <span class="statLabel">Ventas Totales</span>
+        <span class="statValue">
+          S/
+          {{ ventasTotales() }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="searchBar">
+    <input
+      #inputSearch
+      type="text"
+      placeholder="Buscar por nombre o email..."
+      [value]="searchTerm()"
+      (input)="searchTerm.set(inputSearch.value)"
+      class="searchInput"
+    />
+    <span class="searchIcon">🔍</span>
+  </div>
+
+  <!-- Grid de vendedores -->
+  <div class="vendedoresGrid">
+    @if (datosFiltrados().length === 0) {
+    <div class="noData">
+      {{ searchTerm() ? 'No se encontraron vendedores' : 'No hay vendedores registrados' }}
+    </div>
+    } @else { @for (vendedor of datosFiltrados(); track vendedor.id) {
+    <div class="vendedorCard">
+      <div class="cardHeader">
+        <div class="vendedorAvatar">
+          {{ vendedor.nombre.charAt(0).toUpperCase() }}
+        </div>
+        <span
+          class="badge"
+          [ngClass]="{
+            badgeActivo: vendedor.estado === 'activo',
+            badgeInactivo: vendedor.estado === 'inactivo',
+            badgeBloqueado: vendedor.estado === 'bloqueado'
+          }"
+        >
+          {{ vendedor.estado }}
+        </span>
+      </div>
+
+      <div class="cardBody">
+        <h3>{{ vendedor.nombre }}</h3>
+        <p class="email">{{ vendedor.correo }}</p>
+
+        <div class="estadisticas">
+          <div class="statItem">
+            <span class="statIcon">📦</span>
+            <div>
+              <span class="statNumber">{{
+                getEstadisticasVendedor(vendedor.id).totalPedidos
+              }}</span>
+              <span class="statText">Pedidos</span>
+            </div>
+          </div>
+
+          <div class="statItem">
+            <span class="statIcon">📅</span>
+            <div>
+              <span class="statNumber">{{
+                getEstadisticasVendedor(vendedor.id).totalVisitas
+              }}</span>
+              <span class="statText">Visitas</span>
+            </div>
+          </div>
+
+          <div class="statItem">
+            <span class="statIcon">💰</span>
+            <div>
+              <span class="statNumber">
+                S/
+                {{ getEstadisticasVendedor(vendedor.id).montoTotalVendido || (0).toFixed(0) }}
+              </span>
+              <span class="statText">Vendido</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cardFooter">
+        <button class="btnEdit" (click)="handleOpenModal('edit', vendedor)">✏️</button>
+
+        @if (vendedor.estado === 'activo') {
+        <button
+          class="btnInactivar"
+          (click)="handleCambiarEstado(vendedor.id, 'inactivo')"
+          title="Desactivar"
+        >
+          🚫
+        </button>
+        } @else {
+        <button
+          class="btnActivar"
+          (click)="handleCambiarEstado(vendedor.id, 'activo')"
+          title="Activar"
+        >
+          ✅
+        </button>
+        }
+      </div>
+    </div>
+    } }
+  </div>
+
+  <!-- Modal Crear/Editar -->
+  @if (showModal()) {
+  <div class="modalOverlay" (click)="handleCloseModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modalHeader">
+        <h2>
+          {{ modalMode() === 'create' ? 'Nuevo Vendedor' : 'Editar Vendedor' }}
+        </h2>
+        <button class="modalClose" (click)="handleCloseModal()">✕</button>
+      </div>
+
+      <form (ngSubmit)="handleSubmit()">
+        <div class="modalBody">
+          @if (hasError()) {
+          <div class="errorMessage">{{ hasError() }}</div>
+          } @if (success()) {
+          <div class="successMessage">{{ success() }}</div>
+          }
+
+          <div class="formGroup">
+            <label>Nombre Completo *</label>
+            <input
+              type="text"
+              name="nombre_completo"
+              [(ngModel)]="dataForm().nombre"
+              required
+              placeholder="Ej: Juan Pérez García"
+            />
+          </div>
+
+          <div class="formGroup">
+            <label>Email *</label>
+            <input
+              type="email"
+              name="email"
+              [(ngModel)]="dataForm().correo"
+              required
+              placeholder="Ej: juan.perez@sistema.com"
+            />
+          </div>
+
+          @if (modalMode() === 'create') {
+          <div class="formGroup">
+            <label>Contraseña *</label>
+            <input
+              type="password"
+              name="password"
+              [(ngModel)]="dataForm().contrasena"
+              required
+              placeholder="Mínimo 6 caracteres"
+            />
+          </div>
+          }
+
+          <div class="formGroup">
+            <label>Estado</label>
+            <select name="estado" [(ngModel)]="dataForm().estado">
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+              <option value="bloqueado">Bloqueado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modalFooter">
+          <button type="button" class="btnSecondary" (click)="handleCloseModal()">Cancelar</button>
+          <button type="submit" class="btnPrimary">
+            {{ modalMode() === 'create' ? 'Crear Vendedor' : 'Guardar Cambios' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  }
+</div>

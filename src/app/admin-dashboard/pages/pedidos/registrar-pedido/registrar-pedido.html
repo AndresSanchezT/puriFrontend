@@ -1,4 +1,4 @@
-<div >
+<div>
   <!-- Header -->
   <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
     <div>
@@ -83,16 +83,35 @@
   @if (step() === 1) {
   <div class="bg-white rounded-[10px] shadow-md p-7 min-h-[500px]">
     <h2 class="text-[#2c3e50] text-2xl mb-6">Seleccionar Cliente</h2>
-    <div class="relative mb-[30px]">
-      <input
-        #searchInput
-        type="text"
-        [value]="searchCliente()"
-        (input)="searchCliente.set(searchInput.value)"
-        placeholder="Buscar cliente por nombre o negocio..."
-        class="w-full px-3.75 py-3 border-2 border-gray-300 rounded-[5px] text-[14px] transition-colors"
-      />
-      <span class="absolute right-3 top-3 text-gray-400 text-lg">🔍</span>
+    <div class="relative mb-[30px] flex flex-row items-center gap-4">
+      <!-- Input + ícono de búsqueda -->
+      <div class="relative flex-1">
+        <input
+          #searchInput
+          type="text"
+          [value]="searchCliente()"
+          (input)="searchCliente.set(searchInput.value)"
+          placeholder="Buscar cliente por nombre o negocio..."
+          class="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-[5px] text-[14px] focus:border-blue-400 focus:outline-none transition-colors"
+        />
+        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg">
+          🔍
+        </span>
+      </div>
+      <!-- Select a la derecha -->
+      <div>
+        <select
+          #selectVendedor
+          [value]="vendedorSeleccionado()"
+          (change)="vendedorSeleccionado.set(+selectVendedor.value)"
+          class="px-4 py-3 border-2 border-gray-300 rounded-[5px] text-[14px] focus:border-blue-400 focus:outline-none cursor-pointer transition-colors"
+        >
+          <option value="">Seleccionar Vendedor</option>
+          @for (vendedor of vendedores(); track vendedor.id) {
+          <option [value]="vendedor.id">{{ vendedor.nombre }}</option>
+          }
+        </select>
+      </div>
     </div>
 
     @if (clientesFiltrados().length === 0) {
@@ -254,12 +273,12 @@
           </tr>
         </thead>
         <tbody>
-          @for (item of carrito(); track item.id_producto) {
+          @for (item of carrito(); track item.producto.id) {
           <tr class="hover:bg-[#f8f9fa]">
             <td class="px-4 py-3 text-sm text-[#555] border-b border-[#f0f0f0]">
-              <strong>{{ item.nombre }}</strong
+              <strong>{{ item.producto.nombre }}</strong
               ><br />
-              <span class="text-xs text-slate-400">{{ item.codigo }}</span>
+              <span class="text-xs text-slate-400">{{ item.producto.codigo }}</span>
             </td>
             <td class="px-4 py-3 text-sm text-[#555] border-b border-[#f0f0f0]">
               S/ {{ item.precio_unitario.toFixed(2) }}
@@ -268,9 +287,9 @@
               <input
                 type="number"
                 [(ngModel)]="item.cantidad"
-                (change)="handleCantidadChange(item.id_producto, item.cantidad)"
+                (change)="handleCantidadChange(item.producto.id, item.cantidad)"
                 min="1"
-                [max]="item.stock_disponible"
+                [max]="item.producto.stockActual"
                 class="w-16 border-2 border-gray-200 rounded text-center p-1"
               />
             </td>
@@ -279,7 +298,7 @@
             </td>
             <td class="px-4 py-3 text-sm text-[#555] border-b border-[#f0f0f0]">
               <button
-                (click)="handleEliminarProducto(item.id_producto)"
+                (click)="handleEliminarProducto(item.producto.id)"
                 class="text-red-500 hover:text-red-700 text-lg"
               >
                 🗑️
@@ -351,9 +370,9 @@
 
       <div class="bg-[#f8f9fa] p-5 rounded-[10px]">
         <h3 class="text-[#2c3e50] text-lg mb-4 border-b-2 border-[#e0e0e0] pb-2.5">Productos</h3>
-        @for (item of carrito(); track item.id_producto) {
+        @for (item of carrito(); track item.producto.id) {
         <div class="flex justify-between py-2.5 border-b border-[#e0e0e0] last:border-b-0">
-          <span>{{ item.nombre }} x {{ item.cantidad }}</span>
+          <span>{{ item.producto.nombre }} x {{ item.cantidad }}</span>
           <span>S/ {{ item.subtotal.toFixed(2) }}</span>
         </div>
         }

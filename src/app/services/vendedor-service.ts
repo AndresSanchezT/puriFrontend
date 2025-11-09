@@ -3,8 +3,10 @@ import { environment } from '../environments/environment';
 import { Usuario } from '../models/usuario.interface';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, tap } from 'rxjs';
+import { estadisticas } from '../models/responses/estadisticas.interface';
 
 const baseUrl = environment.baseUrl;
+
 
 const emptyVendedor: Usuario = {
   id: -1,
@@ -105,5 +107,9 @@ export class VendedorService {
 
   clearCache() {
     this.allVendedoresCache.clear();
+  }
+
+  getEstadisticasGenerales(): Observable<estadisticas[]> {
+    return this.http.get<estadisticas[]>(`${baseUrl}/vendedores/estadisticas`);
   }
 }
