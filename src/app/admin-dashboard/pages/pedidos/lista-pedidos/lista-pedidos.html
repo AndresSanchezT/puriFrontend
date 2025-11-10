@@ -1,1 +1,289 @@
-<p>lista-pedidos works!</p>,
+<div class="container">
+  <div class="header">
+    <div>
+      <h1>Lista de Pedidos</h1>
+      <p>Consulta y gestiona los pedidos registrados en el sistema</p>
+    </div>
+  </div>
+
+  @if (error()) {
+  <div class="errorMessage">{{ error() }}</div>
+  } @if (success()) {
+  <div class="successMessage">{{ success() }}</div>
+  }
+
+  <!-- Estadísticas -->
+  <div class="statsCards">
+    <div class="statCard">
+      <div class="statIcon">📦</div>
+      <div class="statContent">
+        <span class="statLabel">Total Pedidos</span>
+        <span class="statValue">{{ pedidos().length }}</span>
+      </div>
+    </div>
+
+    <div class="statCard">
+      <div class="statIcon">📝</div>
+      <div class="statContent">
+        <span class="statLabel">Registrados</span>
+        <span class="statValue">
+          {{ totalPedidosRegistrados() }}
+        </span>
+      </div>
+    </div>
+
+    <div class="statCard">
+      <div class="statIcon">✅</div>
+      <div class="statContent">
+        <span class="statLabel">Confirmados</span>
+        <span class="statValue">
+          {{ totalPedidosConfirmados() }}
+        </span>
+      </div>
+    </div>
+
+    <div class="statCard">
+      <div class="statIcon">🚚</div>
+      <div class="statContent">
+        <span class="statLabel">Entregados</span>
+        <span class="statValue">
+          {{ totalPedidosEntregados() }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controles -->
+  <div class="controls">
+    <div class="searchBar">
+      <input
+        #inputSearch
+        type="text"
+        placeholder="Buscar por cliente o número de pedido..."
+        [value]="searchTerm()"
+        (input)="searchTerm.set(inputSearch.value)"
+        class="searchInput"
+      />
+      <span class="searchIcon">🔍</span>
+    </div>
+
+    <div class="filters">
+      <button
+        class="filterBtn"
+        [class.active]="filtroEstado() === 'todos'"
+        (click)="filtroEstado.set('todos')"
+      >
+        Todos
+      </button>
+      <button
+        class="filterBtn"
+        [class.active]="filtroEstado() === 'registrado'"
+        (click)="filtroEstado.set('registrado')"
+      >
+        Registrados
+      </button>
+      <button
+        class="filterBtn"
+        [class.active]="filtroEstado() === 'confirmado'"
+        (click)="filtroEstado.set('confirmado')"
+      >
+        Confirmados
+      </button>
+      <button
+        class="filterBtn"
+        [class.active]="filtroEstado() === 'entregado'"
+        (click)="filtroEstado.set('entregado')"
+      >
+        Entregados
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="tableContainer">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>N° Pedido</th>
+          <th>Cliente</th>
+          <th>Vendedor</th>
+          <th>Fecha</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (datosFiltrados().length === 0) {
+        <tr>
+          <td colspan="7" class="noData">
+            {{
+              searchTerm() || filtroEstado() !== 'todos'
+                ? 'No se encontraron pedidos'
+                : 'No hay pedidos registrados'
+            }}
+          </td>
+        </tr>
+        } @else { @for (pedido of datosFiltrados(); track pedido.id) {
+        <tr>
+          <td>
+            <span class="pedidoId">#{{ pedido.id }}</span>
+          </td>
+          <td>
+            <div class="clienteInfo">
+              <strong>{{ pedido.cliente?.nombreNegocio }}</strong>
+              <span>{{ pedido.cliente?.nombreContacto}}</span>
+            </div>
+          </td>
+          <td>{{ pedido.vendedor?.nombre }}</td>
+          <td>{{ pedido.fechaPedido }}</td>
+          <td>
+            <span class="total">S/ {{ pedido.total | number : '1.2-2' }}</span>
+          </td>
+          <td>
+            <span class="badge"
+              [ngClass]="{
+                  'badgeRegistrado' : pedido.estado === 'registrado',
+                  'badgeConfirmado' : pedido.estado === 'confirmado',
+                  'badgeEntregado' : pedido.estado === 'entregado',
+                  'badgeAnulado' : pedido.estado === 'anulado',
+                }"
+            >
+              {{ pedido.estado }}
+            </span>
+          </td>
+          <td>
+            <div class="actions">
+              <button class="btnVer" (click)="handleVerDetalle(pedido.id!)" title="Ver Detalle">
+                👁️
+              </button>
+
+              @if (pedido.estado !== 'anulado') { @if (pedido.estado === 'registrado') {
+              <button
+                class="btnConfirmar"
+                (click)="handleCambiarEstado(pedido.id!, 'confirmado')"
+                title="Confirmar"
+              >
+                ✅
+              </button>
+              } @if (pedido.estado === 'confirmado') {
+              <button
+                class="btnEntregar"
+                (click)="handleCambiarEstado(pedido.id!, 'entregado')"
+                title="Marcar como Entregado"
+              >
+                🚚
+              </button>
+              }
+              <button
+                class="btnAnular"
+                (click)="handleCambiarEstado(pedido.id!, 'anulado')"
+                title="Anular"
+              >
+                ❌
+              </button>
+              }
+            </div>
+          </td>
+        </tr>
+        } }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal Detalle -->
+  @if (showModal() && pedidoDetalle()) {
+  <div class="modalOverlay" (click)="handleCloseModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modalHeader">
+        <h2>Detalle del Pedido #{{ pedidoDetalle()?.id }}</h2>
+        <button class="modalClose" (click)="handleCloseModal()">✕</button>
+      </div>
+
+      <div class="modalBody">
+        <div class="detailSection">
+          <h3>Información del Cliente</h3>
+          <p><strong>Negocio:</strong> {{ pedidoDetalle()?.cliente?.nombreNegocio }}</p>
+          <p><strong>Contacto:</strong> {{ pedidoDetalle()?.cliente?.nombreContacto }}</p>
+          <p>
+            <strong>Teléfono:</strong> {{ pedidoDetalle()?.cliente?.telefono || 'Sin teléfono' }}
+          </p>
+          <p><strong>Dirección:</strong> {{ pedidoDetalle()?.cliente?.direccion }}</p>
+        </div>
+
+        <div class="detailSection">
+          <h3>Información del Pedido</h3>
+          <p><strong>Vendedor:</strong> {{ pedidoDetalle()?.vendedor?.nombre }}</p>
+          <p><strong>Fecha:</strong> {{ pedidoDetalle()?.fechaPedido }}</p>
+          <p>
+            <strong>Estado:</strong>
+            <span class="badge"
+              [ngClass]="{
+                  'badgeRegistrado' : pedidoDetalle()?.estado === 'registrado',
+                  'badgeConfirmado' : pedidoDetalle()?.estado === 'confirmado',
+                  'badgeEntregado' : pedidoDetalle()?.estado === 'entregado',
+                  'badgeAnulado' :pedidoDetalle()?.estado === 'anulado',
+
+                }"
+            >
+              {{ pedidoDetalle()?.estado }}
+            </span>
+          </p>
+          @if (pedidoDetalle()?.observaciones) {
+          <p><strong>Observaciones:</strong> {{ pedidoDetalle()?.observaciones }}</p>
+          }
+        </div>
+
+        <div class="detailSection">
+          <h3>Productos</h3>
+          <table class="detalleTable">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unit.</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (detalle of pedidoDetalle()?.detallePedidos; track detalle.id) {
+              <tr>
+                <td>
+                  <strong>{{ detalle.producto.nombre }}</strong
+                  ><br />
+                  <span class="codigo">{{ detalle.producto.codigo }}</span>
+                </td>
+                <td>{{ detalle.cantidad }} {{ detalle.producto.unidadMedida }}</td>
+                <td>S/ {{ detalle.precioUnitario | number : '1.2-2' }}</td>
+                <td>S/ {{ detalle.subtotal | number : '1.2-2' }}</td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="detailSection">
+          <div class="totalesModal">
+            <div class="totalRow">
+              <span>Subtotal:</span>
+              <span>S/ {{ pedidoDetalle()?.subtotal | number : '1.2-2' }}</span>
+            </div>
+            <div class="totalRow">
+              <span>IGV (18%):</span>
+              <span>S/ {{ pedidoDetalle()?.igv | number : '1.2-2' }}</span>
+            </div>
+            <div class="totalRow totalFinal">
+              <span>TOTAL:</span>
+              <span>S/ {{ pedidoDetalle()?.total | number : '1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modalFooter">
+        <button class="btnSecondary" (click)="handleCloseModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+  }
+</div>

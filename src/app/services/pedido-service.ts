@@ -8,16 +8,16 @@ const baseUrl = environment.baseUrl;
 
 const emptyPedido: Pedido = {
   id: -1,
-  id_vendedor: 0,
-  id_cliente: 0,
-  visita_id: 0,
+  vendedor: undefined,
+  cliente: undefined,
+  visita: undefined,
   fechaPedido: '',
   subtotal: 0,
   igv: 0,
   total: 0,
   estado: '',
   observaciones: '',
-  productos: [],
+  detallePedidos: [],
 };
 
 @Injectable({
@@ -88,6 +88,12 @@ export class PedidoService {
       .post<Pedido>(`${baseUrl}/pedidos`, entLike)
       .pipe(tap((res) => this.updateCache(res)));
   }
+
+  registrar(entLike: Partial<Pedido>,idCliente:number,idVendedor:number): Observable<Pedido> {
+    return this.http
+      .post<Pedido>(`${baseUrl}/pedidos/registrar/${idCliente}/${idVendedor}`, entLike)
+      .pipe(tap((res) => this.updateCache(res)));
+  };
 
   updateCache(entidad: Pedido) {
     const entidadId = entidad.id;

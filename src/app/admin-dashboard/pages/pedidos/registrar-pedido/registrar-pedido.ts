@@ -9,8 +9,7 @@ import { FormsModule } from '@angular/forms';
 import { Usuario } from '../../../../models/usuario.interface';
 import { VendedorService } from '../../../../services/vendedor-service';
 import { VisitaService } from '../../../../services/visita-service';
-import { Visita } from '../../../../models/visita.interface';
-import { Carrito, Pedido } from '../../../../models/pedido.interface';
+import { DetallePedido, Pedido } from '../../../../models/pedido.interface';
 
 export interface ProductoTemp {
   id_producto: number;
@@ -33,7 +32,6 @@ export interface ProductoTemp {
 export class RegistrarPedido {
   clienteService = inject(ClienteService);
   vendedorService = inject(VendedorService);
-  visitaService = inject(VisitaService);
   productoService = inject(ProductoService);
   pedidoService = inject(PedidoService);
 
@@ -53,14 +51,13 @@ export class RegistrarPedido {
   clientes = signal<Cliente[]>([]);
   vendedores = signal<Usuario[]>([]);
   productos = signal<Producto[]>([]);
-  clienteSeleccionado = signal<Cliente | null>(null);
+  clienteSeleccionado = signal<Cliente | undefined>(undefined);
   vendedorSeleccionado = signal<number | null>(null);
-  visitaGenerada = signal<Visita | null>(null);
 
   searchCliente = signal('');
   searchProducto = signal('');
 
-  carrito = signal<Carrito[]>([]);
+  carrito = signal<DetallePedido[]>([]);
   productoTemp = signal<Producto | null>(null);
   cantidadTemp = signal(1);
 
@@ -150,7 +147,7 @@ export class RegistrarPedido {
             ? {
                 ...item,
                 cantidad: nuevaCantidad,
-                subtotal: parseFloat((nuevaCantidad * item.precio_unitario).toFixed(2)),
+                subtotal: parseFloat((nuevaCantidad * item.precioUnitario).toFixed(2)),
               }
             : item
         )
@@ -161,9 +158,7 @@ export class RegistrarPedido {
         ...carritoActual,
         {
           producto: producto,
-          codigo: producto.codigo,
-          nombre: producto.nombre,
-          precio_unitario: +producto.precio,
+          precioUnitario: +producto.precio,
           cantidad,
           stock_disponible: producto.stockActual,
           subtotal: +(cantidad * producto.precio).toFixed(2),
@@ -196,24 +191,15 @@ export class RegistrarPedido {
           ? {
               ...i,
               cantidad: nuevaCantidad,
-              subtotal: +(nuevaCantidad * i.precio_unitario).toFixed(2),
+              subtotal: +(nuevaCantidad * i.precioUnitario).toFixed(2),
             }
           : i
       )
     );
   }
 
-  calcularTotales() {
-    const subtotal = this.carrito().reduce((sum, i) => sum + i.subtotal, 0);
-    const igv = +(subtotal * 0.18).toFixed(2);
-    const total = +(subtotal + igv).toFixed(2);
-
-    this.subtotal.set(subtotal);
-    this.igv.set(igv);
-    this.total.set(total);
-  }
   handleConfirmarPedido() {
-    // ✅ VALIDACIONES PRIMERO (antes de loading)
+    // ✅ VALIDACIONES
     if (!this.vendedorSeleccionado()) {
       return this.error.set('Seleccione un vendedor');
     }
@@ -224,78 +210,63 @@ export class RegistrarPedido {
       return this.error.set('Agregue al menos un producto al pedido');
     }
 
-    // Ahora sí activar loading
     this.loading.set(true);
     this.error.set('');
 
+    // ✅ Fecha en formato yyyy-MM-dd
     const now = new Date().toISOString().split('T')[0];
-    const vendedor = this.vendedores().find((v) => v.id === this.vendedorSeleccionado());
 
-    const nuevaVisita: Visita = {
-      vendedor: vendedor,
-      cliente: this.clienteSeleccionado()!,
-      fecha: now,
-      estado: 'programada',
-      observaciones: '',
+    // ✅ Armar el objeto pedido (sin visita, el backend la crea)
+    const pedidoData: Pedido = {
+      fechaPedido: now,
+      estado: 'registrado',
+      observaciones: this.observaciones() || '',
+      subtotal: this.subtotal(),
+      igv: this.igv(),
+      total: this.total(),
+      detallePedidos: this.carrito().map((i) => ({
+        producto: i.producto,
+        cantidad: i.cantidad,
+        precioUnitario: i.precioUnitario,
+        subtotal: i.subtotal,
+      })),
     };
 
-    this.visitaService.create(nuevaVisita).subscribe({
-      next: (visitaCreada: Visita) => {
-        this.visitaGenerada.set(visitaCreada);
+    const clienteId = this.clienteSeleccionado()?.id;
+    const vendedorId = this.vendedorSeleccionado();
 
-        // ✅ Buscar el objeto completo del vendedor
-        const vendedor = this.vendedores().find((v) => v.id === this.vendedorSeleccionado());
-
-        // ✅ ESTRUCTURA CON OBJETOS COMPLETOS (tal como espera el backend)
-        const pedidoData = {
-          vendedor: vendedor, // ✅ Objeto completo Usuario
-          cliente: this.clienteSeleccionado(), // ✅ Objeto completo Cliente
-          visita: visitaCreada, // ✅ Objeto completo Visita
-          fechaPedido: now,
-          subtotal: this.subtotal(),
-          igv: this.igv(),
-          total: this.total(),
-          estado: 'pendiente',
-          observaciones: this.observaciones() || '',
-          detallePedidos: this.carrito().map((i) => ({
-            producto: i.producto, // ✅ Objeto completo Producto
-            cantidad: i.cantidad,
-            precioUnitario: i.precio_unitario,
-            subtotal: i.subtotal,
-          })),
-        };
-
-        // ✅ Debug: ver qué se está enviando
-        console.log('📦 Datos del pedido:', pedidoData);
-
-        this.pedidoService.create(pedidoData).subscribe({
-          next: (res: any) => {
-            this.success.set('Pedido y visita registrados exitosamente');
-            this.loading.set(false);
-            setTimeout(() => {
-              this.resetForm();
-              this.fetchProductos();
-            }, 2000);
-          },
-          error: (err) => {
-            console.error('❌ Error completo:', err);
-            this.error.set(err?.error?.message || 'Error al registrar pedido');
-            this.loading.set(false);
-          },
-        });
+    // ✅ Llamada al backend
+    this.pedidoService.registrar(pedidoData, clienteId!, vendedorId!).subscribe({
+      next: (res: any) => {
+        this.success.set('Pedido registrado exitosamente');
+        this.loading.set(false);
+        setTimeout(() => {
+          this.resetForm();
+          this.fetchProductos();
+        }, 2000);
       },
       error: (err) => {
-        console.error('❌ Error al crear visita:', err);
-        this.error.set(err?.error?.message || 'Error al registrar visita');
+        console.error('❌ Error al registrar pedido:', err);
+        this.error.set(err?.error?.message || 'Error al registrar pedido');
         this.loading.set(false);
       },
     });
+  }
+  calcularTotales() {
+    const subtotal = this.carrito().reduce((sum, i) => sum + i.subtotal, 0);
+    const igv = +(subtotal * 0.18).toFixed(2);
+    const total = +(subtotal + igv).toFixed(2);
+
+    this.subtotal.set(subtotal);
+    this.igv.set(igv);
+    this.total.set(total);
   }
 
   resetForm() {
     this.step.set(1);
     this.carrito.set([]);
-    this.clienteSeleccionado.set(null);
+    this.clienteSeleccionado.set(undefined);
+    this.vendedorSeleccionado.set(null);
     this.observaciones.set('');
     this.success.set('');
   }
