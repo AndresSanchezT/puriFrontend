@@ -8,7 +8,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Usuario } from '../../../../models/usuario.interface';
 import { VendedorService } from '../../../../services/vendedor-service';
-import { VisitaService } from '../../../../services/visita-service';
 import { DetallePedido, Pedido } from '../../../../models/pedido.interface';
 
 export interface ProductoTemp {

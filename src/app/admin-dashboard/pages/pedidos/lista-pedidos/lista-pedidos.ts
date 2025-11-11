@@ -8,6 +8,7 @@ import { Pedido } from '../../../../models/pedido.interface';
 import { Cliente } from '../../../../models/cliente.interface';
 import { Usuario } from '../../../../models/usuario.interface';
 
+
 @Component({
   selector: 'app-lista-pedidos',
   standalone: true,
@@ -19,6 +20,7 @@ export class ListaPedidos {
   private readonly pedidoService = inject(PedidoService);
   private readonly clienteService = inject(ClienteService);
   private readonly vendedorService = inject(VendedorService);
+
 
   readonly pedidos = signal<Pedido[]>([]);
   readonly clientes = signal<Cliente[]>([]);
