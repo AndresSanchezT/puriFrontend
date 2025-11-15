@@ -130,9 +130,21 @@ export class PedidoService {
 
   /** Obtiene todos los pedidos del backend */
   getAll(): Observable<Pedido[]> {
-    return this.http.get<Pedido[]>(`${baseUrl}/pedidos`).pipe(
-      tap(()=> console.log("Solicitando HTTP"))
-    )
+    return this.http
+      .get<Pedido[]>(`${baseUrl}/pedidos`)
+      .pipe(tap(() => console.log('Solicitando HTTP')));
+  }
+
+  getPedidosHoy(): Observable<Pedido[]> {
+    return this.http
+      .get<Pedido[]>(`${baseUrl}/pedidos/hoy`)
+      .pipe(tap(() => console.log('Solicitando HTTP')));
+  }
+
+  getPedidosTotales(): Observable<number> {
+    return this.http
+      .get<number>(`${baseUrl}/pedidos/total`)
+      .pipe(tap(() => console.log('Solicitando HTTP')));
   }
 
   /** Obtiene un pedido por ID */

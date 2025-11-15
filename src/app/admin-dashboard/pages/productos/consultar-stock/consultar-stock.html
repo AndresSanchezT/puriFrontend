@@ -1,1 +1,254 @@
-<p>consultar-stock works!</p>,
+<div class="container">
+  @if (loading()) {
+  <div class="container">
+    <div class="loading">Cargando productos...</div>
+  </div>
+  } @else {
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>Consultar Stock de Productos</h1>
+        <p>Consulta la disponibilidad de productos en inventario</p>
+      </div>
+    </div>
+
+    @if (error()) {
+    <div class="errorMessage">{{ error() }}</div>
+    }
+
+    <!-- Estadísticas -->
+    <div class="statsCards">
+      <div class="statCard">
+        <div class="statIcon">📦</div>
+        <div class="statContent">
+          <span class="statLabel">Total Productos</span>
+          <span class="statValue">{{ productos().length }}</span>
+        </div>
+      </div>
+
+      <div class="statCard">
+        <div class="statIcon">✅</div>
+        <div class="statContent">
+          <span class="statLabel">Disponibles</span>
+          <span class="statValue">{{ productosDisponibles().length }}</span>
+        </div>
+      </div>
+
+      <div class="statCard">
+        <div class="statIcon">⚠️</div>
+        <div class="statContent">
+          <span class="statLabel">Stock Bajo</span>
+          <span class="statValue">{{ productosStockBajo().length }}</span>
+        </div>
+      </div>
+
+      <div class="statCard">
+        <div class="statIcon">❌</div>
+        <div class="statContent">
+          <span class="statLabel">Agotados</span>
+          <span class="statValue">{{ productosAgotados().length }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alertas de Stock Bajo -->
+    @if (productosStockBajo().length > 0) {
+    <div class="alertSection">
+      <div class="alertHeader">
+        <span class="alertIcon">⚠️</span>
+        <strong>Productos con Stock Bajo ({{ productosStockBajo().length }})</strong>
+      </div>
+      <div class="alertProducts">
+        @for (producto of productosStockBajo().slice(0,5); track producto.id ){
+        <div>
+          <div class="alertItem">
+            <span class="alertProductName">{{ producto.nombre }}</span>
+            <span class="alertStock"
+              >Stock: {{ producto.stockActual }} / Mínimo: {{ producto.stockMinimo }}</span
+            >
+          </div>
+        </div>
+        } @if (productosStockBajo().length > 5) {
+        <div class="alertMore">y {{ productosStockBajo().length - 5 }} productos más...</div>
+        }
+      </div>
+    </div>
+    }
+
+    <!-- Controles de Búsqueda y Filtrado -->
+    <div class="controls">
+      <div class="searchBar">
+        <input
+          #inputSearch
+          type="text"
+          placeholder="Buscar por nombre, código o descripción..."
+          [value]="searchTerm()"
+          (input)="searchTerm.set(inputSearch.value)"
+          class="searchInput"
+        />
+        <span class="searchIcon">🔍</span>
+      </div>
+
+      <div class="filters">
+        <button
+          class="filterBtn"
+          [class.active]="filtroStock() === 'todos'"
+          (click)="filtroStock.set('todos')"
+        >
+          Todos
+        </button>
+
+        <button
+          class="filterBtn"
+          [class.active]="filtroStock() === 'disponible'"
+          (click)="filtroStock.set('disponible')"
+        >
+          Disponibles
+        </button>
+
+        <button
+          class="filterBtn"
+          [class.active]="filtroStock() === 'bajo'"
+          (click)="filtroStock.set('bajo')"
+        >
+          Stock Bajo
+        </button>
+
+        <button
+          class="filterBtn"
+          [class.active]="filtroStock() === 'agotado'"
+          (click)="filtroStock.set('agotado')"
+        >
+          Agotados
+        </button>
+      </div>
+    </div>
+
+    <!-- Grid de Productos -->
+    <div class="productsGrid">
+      @if (datosFiltrados().length === 0) {
+      <div class="noData">
+        {{ searchTerm() ? 'No se encontraron productos' : 'No hay productos disponibles' }}
+      </div>
+      } @else { @for(producto of datosFiltrados(); track producto.id){
+      <div class="productCard">
+        <div class="productHeader">
+          <span class="productCode">{{ producto.codigo }}</span>
+          <span
+            class="badge"
+            [ngClass]="{
+              badgeAgotado: producto.stockActual === 0,
+              badgeBajo: producto.stockActual < producto.stockMinimo,
+              badgeDisponible: producto.stockActual > producto.stockMinimo
+            }"
+          >
+            {{
+              producto.stockActual === 0
+                ? 'Agotado'
+                : producto.stockActual < producto.stockMinimo
+                ? 'Stock Bajo'
+                : 'Disponible'
+            }}</span
+          >
+        </div>
+
+        <div class="productBody">
+          <h3 class="productName">{{ producto.nombre }}</h3>
+
+          @if (producto.descripcion) {
+          <p class="productDescription">{{ producto.descripcion }}</p>
+          }
+
+          <div class="productInfo">
+            <div class="infoItem">
+              <span class="infoLabel">Precio:</span>
+              <span class="infoValue">{{ producto.precio }}</span>
+            </div>
+            <div class="infoItem">
+              <span class="infoLabel">Stock Actual:</span>
+              <span class="infoValue stockValue">{{ producto.stockActual }}</span>
+            </div>
+            <div class="infoItem">
+              <span class="infoLabel">Stock Mínimo:</span>
+              <span class="infoValue">{{ producto.stockMinimo }}</span>
+            </div>
+            <div class="infoItem">
+              <span class="infoLabel">Unidad:</span>
+              <span class="infoValue">{{ producto.unidadMedida }}</span>
+            </div>
+          </div>
+
+          <!-- Barra de progreso de stock -->
+          <div class="stockProgress">
+            <div
+              class="stockProgressBar"
+              [style.width]="getProgressWidth(producto)"
+              [style.backgroundColor]="getProgressColor(producto)"
+            ></div>
+          </div>
+        </div>
+
+        <div class="productFooter">
+          <button class="btnDetalle" (click)="handleVerDetalle(producto)">Ver Detalle</button>
+        </div>
+      </div>
+      } }
+    </div>
+
+    <!-- Modal de Detalle -->
+    @if (showModal() && productoSeleccionado()) {
+    <div class="modalOverlay" (click)="handleCloseModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modalHeader">
+          <h2>Detalle del Producto</h2>
+          <button class="modalClose" (click)="handleCloseModal()">✕</button>
+        </div>
+
+        <div class="modalBody">
+          <div class="detailGrid">
+            <div class="detailItem">
+              <span class="detailLabel">Código:</span>
+              <span class="detailValue">{{ productoSeleccionado()!.codigo }}</span>
+            </div>
+            <div class="detailItem">
+              <span class="detailLabel">Nombre:</span>
+              <span class="detailValue">{{ productoSeleccionado()!.nombre }}</span>
+            </div>
+            <div class="detailItem">
+              <span class="detailLabel">Descripción:</span>
+              <span class="detailValue">{{
+                productoSeleccionado()!.descripcion || 'Sin descripción'
+              }}</span>
+            </div>
+            <div class="detailItem">
+              <span class="detailLabel">Precio Unitario:</span>
+              <span class="detailValue">{{ productoSeleccionado()!.precio }}</span>
+            </div>
+            <div class="detailItem">
+              <span class="detailLabel">Stock Actual:</span>
+              <span class="detailValue highlight">{{ productoSeleccionado()!.stockActual }}</span>
+            </div>
+            <div class="detailItem">
+              <span class="detailLabel">Stock Mínimo:</span>
+              <span class="detailValue">{{ productoSeleccionado()!.stockMinimo }}</span>
+            </div>
+            <div class="detailItem">
+              <span class="detailLabel">Unidad de Medida:</span>
+              <span class="detailValue">{{ productoSeleccionado()!.unidadMedida }}</span>
+            </div>
+            <div class="detailItem">
+              <span class="detailLabel">Estado:</span>
+              <span class="badge">{{ productoSeleccionado()?.estado }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modalFooter">
+          <button class="btnSecondary" (click)="handleCloseModal()">Cerrar</button>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+  }
+</div>

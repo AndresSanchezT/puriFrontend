@@ -93,7 +93,8 @@
 
       <div class="cardBody">
         <h3>{{ vendedor.nombre }}</h3>
-        <p class="email">{{ vendedor.correo }}</p>
+        <p class="email">Email: <span class="span">{{ vendedor.correo }}</span></p>
+        <p class="email">Telefono: <span class="span">{{ vendedor.telefono }}</span></p>
 
         <div class="estadisticas">
           <div class="statItem">
@@ -200,13 +201,23 @@
             <label>Contraseña *</label>
             <input
               type="password"
-              name="password"
+              name="fono"
               [(ngModel)]="dataForm().contrasena"
               required
               placeholder="Mínimo 6 caracteres"
             />
           </div>
           }
+          <div class="formGroup">
+            <label>Telefono *</label>
+            <input
+              type="number"
+              name="telefono"
+              [(ngModel)]="dataForm().telefono"
+              required
+              placeholder="987654321"
+            />
+          </div>
 
           <div class="formGroup">
             <label>Estado</label>

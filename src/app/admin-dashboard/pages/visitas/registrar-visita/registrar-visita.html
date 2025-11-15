@@ -1,1 +1,125 @@
-<p>registrar-visita works!</p>,
+<div class="container">
+  <div class="header">
+    <div>
+      <h1>Registrar Visita</h1>
+      <p>Programa o registra una visita realizada a un cliente</p>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="errorMessage">{{ error() }}</div>
+  }
+
+  @if (success()) {
+    <div class="successMessage">{{ success() }}</div>
+  }
+
+  <div class="formContainer">
+    <form (submit)="handleSubmit($event)" class="form">
+
+      <!-- Cliente -->
+      <div class="formGroup">
+        <label>Cliente *</label>
+        <input
+        #searchInput
+          type="text"
+          placeholder="Buscar cliente..."
+          [value]="searchCliente()"
+          (input)="searchCliente.set(searchInput.value)"
+          class="searchInput"
+        />
+
+        @if (searchCliente().length > 0) {
+          <div class="clientesDropdown">
+            @for (cliente of clientesFiltrados(); track cliente.id) {
+              <div
+                class="clienteOption"
+                (click)="seleccionarCliente(cliente)"
+              >
+                <strong>{{ cliente.nombreNegocio }}</strong>
+                <span>{{ cliente.nombreContacto }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Fecha -->
+      <div class="formGroup">
+        <label>Fecha y Hora de Visita *</label>
+        <input
+          type="datetime-local"
+          name="fecha_visita"
+          [value]="formData().fecha_visita"
+          (input)="handleChange($event)"
+          required
+        />
+      </div>
+
+      <!-- Tipo -->
+      <div class="formGroup">
+        <label>Tipo de Visita *</label>
+        <select
+          name="tipo_visita"
+          [value]="formData().tipo_visita"
+          (change)="handleChange($event)"
+          required
+        >
+          <option value="prospeccion">Prospección</option>
+          <option value="seguimiento">Seguimiento</option>
+          <option value="entrega">Entrega</option>
+          <option value="cobranza">Cobranza</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+
+      <!-- Estado -->
+      <div class="formGroup">
+        <label>Estado *</label>
+        <select
+          name="estado"
+          [value]="formData().estado"
+          (change)="handleChange($event)"
+          required
+        >
+          <option value="programada">Programada</option>
+          <option value="realizada">Realizada</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
+      </div>
+
+      <!-- Observaciones -->
+      <div class="formGroup" style="grid-column: 1 / -1">
+        <label>Observaciones</label>
+        <textarea
+          name="observaciones"
+          [value]="formData().observaciones"
+          (input)="handleChange($event)"
+          placeholder="Detalles de la visita, motivo, etc."
+          rows="4"
+        ></textarea>
+      </div>
+
+      <!-- Botones -->
+      <div class="formActions">
+        <button type="button" class="btnSecondary" (click)="handleLimpiar()">
+          Limpiar
+        </button>
+        <button type="submit" class="btnPrimary" [disabled]="loading()">
+          {{ loading() ? 'Registrando...' : 'Registrar Visita' }}
+        </button>
+      </div>
+    </form>
+
+    <div class="infoBox">
+      <h3>💡 Tipos de Visita:</h3>
+      <ul>
+        <li><strong>Prospección:</strong> Primera visita a cliente potencial</li>
+        <li><strong>Seguimiento:</strong> Visita de control y atención</li>
+        <li><strong>Entrega:</strong> Entrega de productos/pedidos</li>
+        <li><strong>Cobranza:</strong> Cobro de facturas pendientes</li>
+      </ul>
+    </div>
+  </div>
+</div>
+

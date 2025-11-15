@@ -1,1 +1,232 @@
-<p>lista-visitas works!</p>,
+<div class="container">
+  <div class="header">
+    <div>
+      <h1>Mis Visitas</h1>
+      <p>Gestiona tus visitas programadas y realizadas</p>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="errorMessage">{{ error() }}</div>
+  }
+
+  @if (success()) {
+    <div class="successMessage">{{ success() }}</div>
+  }
+
+  <!-- Estadísticas -->
+  <div class="statsCards">
+    <div class="statCard">
+      <div class="statIcon">📅</div>
+      <div class="statContent">
+        <span class="statLabel">Total Visitas</span>
+        <span class="statValue">{{ visitas().length }}</span>
+      </div>
+    </div>
+
+    <div class="statCard">
+      <div class="statIcon">🕐</div>
+      <div class="statContent">
+        <span class="statLabel">Programadas</span>
+        <span class="statValue">
+          {{ visitasProgramadas() }}
+        </span>
+      </div>
+    </div>
+
+    <div class="statCard">
+      <div class="statIcon">✅</div>
+      <div class="statContent">
+        <span class="statLabel">Realizadas</span>
+        <span class="statValue">
+          {{ visitasRealizadas() }}
+        </span>
+      </div>
+    </div>
+
+    <div class="statCard">
+      <div class="statIcon">❌</div>
+      <div class="statContent">
+        <span class="statLabel">Canceladas</span>
+        <span class="statValue">
+          {{ visitasCanceladas() }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controles -->
+  <div class="controls">
+    <div class="searchBar">
+      <input
+      #inputSearch
+        type="text"
+        placeholder="Buscar por cliente..."
+        [value]="searchTerm()"
+        (input)="searchTerm.set(inputSearch.value)"
+        class="searchInput"
+      />
+      <span class="searchIcon">🔍</span>
+    </div>
+
+    <div class="filters">
+      <button
+        class="filterBtn"
+        [class.active]="filtroEstado() === 'todos'"
+        (click)="filtroEstado.set('todos')"
+      >
+        Todos
+      </button>
+      <button
+        class="filterBtn"
+        [class.active]="filtroEstado() === 'programada'"
+        (click)="filtroEstado.set('programada')"
+      >
+        Programadas
+      </button>
+      <button
+        class="filterBtn"
+        [class.active]="filtroEstado() === 'realizada'"
+        (click)="filtroEstado.set('realizada')"
+      >
+        Realizadas
+      </button>
+      <button
+        class="filterBtn"
+        [class.active]="filtroEstado() === 'cancelada'"
+        (click)="filtroEstado.set('cancelada')"
+      >
+        Canceladas
+      </button>
+    </div>
+  </div>
+
+  <!-- Grid de Visitas -->
+  <div class="visitasGrid">
+    @if (datosFiltrados().length === 0) {
+      <div class="noData">
+        {{
+          searchTerm() || filtroEstado() !== 'todos'
+            ? 'No se encontraron visitas'
+            : 'No hay visitas registradas'
+        }}
+      </div>
+    } @else {
+      @for (visita of datosFiltrados(); track visita.id) {
+        <div class="visitaCard">
+          <div class="visitaHeader">
+            <span
+              class="badge"
+              [ngClass]="{
+                programada: visita.estado === 'programada',
+                realizada: visita.estado === 'realizada',
+                cancelada: visita.estado === 'cancelada'
+              }"
+            >
+              {{ visita.estado | titlecase }}
+            </span>
+            <span class="tipoBadge">
+              {{ visita.estado }}
+            </span>
+          </div>
+
+          <div class="visitaBody">
+            <div class="clienteInfo">
+              <h3>{{ visita.cliente?.nombreNegocio }}</h3>
+              <p>{{ visita.cliente?.nombreContacto }}</p>
+            </div>
+
+            <div class="visitaDetails">
+              <div class="detailItem">
+                <span class="detailIcon">📅</span>
+                <span>{{ visita.fecha| date: 'mediumDate' }}</span>
+              </div>
+
+              @if (visita.cliente?.telefono) {
+                <div class="detailItem">
+                  <span class="detailIcon">📞</span>
+                  <span>{{ visita.cliente?.telefono }}</span>
+                </div>
+              }
+
+              @if (visita.cliente?.direccion) {
+                <div class="detailItem">
+                  <span class="detailIcon">📍</span>
+                  <span>{{ visita.cliente?.direccion }}</span>
+                </div>
+              }
+            </div>
+
+            @if (visita.observaciones) {
+              <div class="observaciones">
+                <strong>Observaciones:</strong>
+                <p>{{ visita.observaciones }}</p>
+              </div>
+            }
+
+            @if (visita.observaciones) {
+              <div class="resultado">
+                <strong>Resultado:</strong>
+                <p>{{ visita.observaciones }}</p>
+              </div>
+            }
+          </div>
+
+          @if (visita.estado === 'programada') {
+            <div class="visitaFooter">
+              <button
+                class="btnRealizada"
+                (click)="handleCambiarEstado(visita.id!, 'realizada')"
+              >
+                ✅ Marcar Realizada
+              </button>
+              <button
+                class="btnCancelar"
+                (click)="handleCambiarEstado(visita.id!, 'cancelada')"
+              >
+                ❌ Cancelar
+              </button>
+            </div>
+          }
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Modal -->
+  @if (showModal()) {
+    <div class="modalOverlay" (click)="handleCloseModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modalHeader">
+          <h2>Resultado de la Visita</h2>
+          <button class="modalClose" (click)="handleCloseModal()">✕</button>
+        </div>
+
+        <div class="modalBody">
+          <p class="modalInfo">
+            <strong>Cliente:</strong> (Seleccionado)
+          </p>
+          <p class="modalInfo">
+            <strong>Fecha:</strong> (Detalle)
+          </p>
+
+          <div class="formGroup">
+            <label>Resultado de la visita *</label>
+            <textarea
+              placeholder="Describa qué ocurrió en la visita, acuerdos alcanzados, etc."
+              rows="5"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="modalFooter">
+          <button class="btnSecondary" (click)="handleCloseModal()">
+            Cancelar
+          </button>
+          <button class="btnPrimary">Guardar Resultado</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+

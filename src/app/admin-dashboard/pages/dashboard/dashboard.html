@@ -1,1 +1,109 @@
-<p>dashboard works!</p>,
+<div class="container">
+  <div class="header">
+    <div>
+      <h1>Bienvenido Administrador</h1>
+      <p>Panel de Administracion</p>
+    </div>
+  </div>
+  @if (error()) {
+  <div class="errorMessage">{{ error() }}</div>
+  } @if (success()) {
+  <div class="successMessage">{{ success() }}</div>
+  }
+
+  <!-- Estadísticas -->
+  <div class="statsCards">
+
+    <div class="statCard">
+      <div class="statIcon">👥</div>
+      <div class="statContent">
+        <span class="statLabel">Total Usuarios</span>
+        <span class="statValue"> <br>
+          {{ stats().totalUsuarios }}
+        </span>
+      </div>
+    </div>
+
+    <div class="statCard">
+      <div class="statIcon">🏢</div>
+      <div class="statContent">
+        <span class="statLabel">Total Clientes</span>
+        <span class="statValue"><br>
+          {{ stats().totalClientes }}
+        </span>
+      </div>
+    </div>
+
+    <div class="statCard">
+      <div class="statIcon">📦</div>
+      <div class="statContent">
+        <span class="statLabel">Pedidos hoy</span>
+        <span class="statValue"><br>
+          {{ stats().pedidosHoy }}
+        </span>
+      </div>
+    </div>
+
+    <div class="statCard">
+      <div class="statIcon">💰</div>
+      <div class="statContent">
+        <span class="statLabel">Ventas del Mes</span>
+        <span class="statValue"><br>
+          S/ {{ stats().ventasMes }}
+        </span>
+      </div>
+    </div>
+
+    <div class="statCard">
+      <div class="statIcon">⚠️</div>
+      <div class="statContent">
+        <span class="statLabel">Stock Bajo</span>
+        <span class="statValue"><br>
+          {{ stats().productosStockBajo }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  @if (pedidosRecientes().length > 0) {
+  <div>
+    <h2>📦 Pedidos Recientes</h2>
+    <div>
+      <table class="table">
+        <thead>
+          <tr class="table-header">
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Fecha</th>
+            <th>Total</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (pedido of pedidosRecientes(); track pedido.id) {
+          <tr class="border border-[#f0f0f0] table-row">
+            <td class="py-[15px] px-[12px]">#{{ pedido.id }}</td>
+            <td class="py-[15px] px-[12px]">{{ pedido.cliente?.nombreNegocio }}</td>
+            <td class="py-[15px] px-[12px]">{{ pedido.fechaPedido }}</td>
+            <td class="py-[15px] px-[12px] font-bold text-[#27ae60]">S/ {{ pedido.total }}</td>
+            <td class="py-[15px] px-[12px]">
+              <span
+                [ngClass]="{
+                  'inline-block px-3 py-1 rounded-full text-[11px] font-bold bg-[#d4edda] text-[#155724]':
+                    pedido.estado === 'registrado'
+                }"
+              >
+                {{ pedido.estado }}
+              </span>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+
+      <div></div>
+    </div>
+  </div>
+  }
+</div>

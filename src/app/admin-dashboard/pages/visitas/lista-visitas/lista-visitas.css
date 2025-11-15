@@ -3,9 +3,6 @@
 }
 
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 30px;
 }
 
@@ -18,24 +15,6 @@
 .header p {
   color: #7f8c8d;
   font-size: 14px;
-}
-
-.btnPrimary {
-  padding: 12px 24px;
-  background: #3498db;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btnPrimary:hover {
-  background: #2980b9;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
 }
 
 .loading {
@@ -115,10 +94,18 @@
   color: #2c3e50;
 }
 
-/* Search Bar */
+/* Controles */
+.controls {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
 .searchBar {
   position: relative;
-  margin-bottom: 30px;
+  flex: 1;
+  min-width: 300px;
 }
 
 .searchInput {
@@ -144,14 +131,43 @@
   color: #7f8c8d;
 }
 
-/* Grid de Vendedores */
-.vendedoresGrid {
+.filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filterBtn {
+  padding: 12px 20px;
+  border: 2px solid #e0e0e0;
+  background: white;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  color: #555;
+}
+
+.filterBtn:hover {
+  border-color: #3498db;
+  color: #3498db;
+}
+
+.filterBtn.active {
+  background: #3498db;
+  border-color: #3498db;
+  color: white;
+}
+
+/* Grid de Visitas */
+.visitasGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 20px;
 }
 
-.vendedorCard {
+.visitaCard {
   background: white;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -159,31 +175,18 @@
   transition: all 0.3s;
 }
 
-.vendedorCard:hover {
+.visitaCard:hover {
   transform: translateY(-5px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
-.cardHeader {
+.visitaHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.vendedorAvatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: white;
-  color: #667eea;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  font-weight: 700;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .badge {
@@ -195,84 +198,90 @@
   text-transform: uppercase;
 }
 
-.badgeActivo {
-  background: #d4edda;
-  color: #155724;
-}
-
-.badgeInactivo {
-  background: #f8d7da;
-  color: #721c24;
-}
-
-.badgeBloqueado {
+.badgeProgramada {
   background: #fff3cd;
   color: #856404;
 }
 
-.cardBody {
+.badgeRealizada {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badgeCancelada {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.tipoBadge {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.visitaBody {
   padding: 20px;
 }
 
-.cardBody h3 {
+.clienteInfo h3 {
   color: #2c3e50;
   font-size: 18px;
   margin-bottom: 5px;
-  font-weight: 600;
 }
 
-.email {
-  font-weight: bold;
-  color: #e43409;
-  font-size: 15px;
-  margin-bottom: 20px;
+.clienteInfo p {
+  color: #7f8c8d;
+  font-size: 14px;
+  margin-bottom: 15px;
 }
 
-.span {
-  font-weight: bold;
-  color: black;
-  font-size: 18px;
-}
-.estadisticas {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
+.visitaDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
-.statItem {
+.detailItem {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px;
+  font-size: 14px;
+  color: #555;
+}
+
+.detailIcon {
+  font-size: 16px;
+}
+
+.observaciones,
+.resultado {
   background: #f8f9fa;
-  border-radius: 8px;
+  padding: 12px;
+  border-radius: 5px;
+  margin-top: 10px;
 }
 
-.statItem .statIcon {
-  font-size: 24px;
-  width: auto;
-  height: auto;
-  background: none;
-}
-
-.statItem div {
-  display: flex;
-  flex-direction: column;
-}
-
-.statNumber {
-  font-size: 18px;
-  font-weight: 700;
+.observaciones strong,
+.resultado strong {
   color: #2c3e50;
+  display: block;
+  margin-bottom: 5px;
+  font-size: 13px;
 }
 
-.statText {
-  font-size: 11px;
-  color: #7f8c8d;
-  text-transform: uppercase;
+.observaciones p,
+.resultado p {
+  color: #555;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
 }
 
-.cardFooter {
+.visitaFooter {
   display: flex;
   gap: 10px;
   padding: 15px;
@@ -280,11 +289,10 @@
   border-top: 1px solid #e0e0e0;
 }
 
-.btnDetalle {
+.btnRealizada,
+.btnCancelar {
   flex: 1;
   padding: 10px;
-  background: #3498db;
-  color: white;
   border: none;
   border-radius: 5px;
   font-size: 13px;
@@ -293,49 +301,22 @@
   transition: all 0.3s;
 }
 
-.btnDetalle:hover {
-  background: #2980b9;
-}
-
-.btnEdit,
-.btnInactivar,
-.btnActivar {
-  padding: 10px 15px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.3s;
-}
-
-.btnEdit {
-  background: #f39c12;
-  color: white;
-}
-
-.btnEdit:hover {
-  background: #e67e22;
-  transform: scale(1.1);
-}
-
-.btnInactivar {
-  background: #e74c3c;
-  color: white;
-}
-
-.btnInactivar:hover {
-  background: #c0392b;
-  transform: scale(1.1);
-}
-
-.btnActivar {
+.btnRealizada {
   background: #27ae60;
   color: white;
 }
 
-.btnActivar:hover {
+.btnRealizada:hover {
   background: #229954;
-  transform: scale(1.1);
+}
+
+.btnCancelar {
+  background: #e74c3c;
+  color: white;
+}
+
+.btnCancelar:hover {
+  background: #c0392b;
 }
 
 .noData {
@@ -366,7 +347,7 @@
 .modal {
   background: white;
   border-radius: 10px;
-  max-width: 500px;
+  max-width: 600px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
@@ -412,8 +393,18 @@
   padding: 25px;
 }
 
+.modalInfo {
+  color: #555;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.modalInfo strong {
+  color: #2c3e50;
+}
+
 .formGroup {
-  margin-bottom: 20px;
+  margin-top: 20px;
 }
 
 .formGroup label {
@@ -424,19 +415,18 @@
   font-size: 14px;
 }
 
-.formGroup input,
-.formGroup select {
+.formGroup textarea {
   width: 100%;
   padding: 12px 15px;
   border: 2px solid #e0e0e0;
   border-radius: 5px;
   font-size: 14px;
-  transition: border-color 0.3s;
   font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.3s;
 }
 
-.formGroup input:focus,
-.formGroup select:focus {
+.formGroup textarea:focus {
   outline: none;
   border-color: #3498db;
 }
@@ -447,6 +437,22 @@
   gap: 15px;
   padding: 20px 25px;
   border-top: 1px solid #e0e0e0;
+}
+
+.btnPrimary {
+  padding: 12px 24px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btnPrimary:hover {
+  background: #2980b9;
 }
 
 .btnSecondary {
@@ -470,25 +476,31 @@
     padding: 15px;
   }
 
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-  }
-
-  .btnPrimary {
-    width: 100%;
-  }
-
   .statsCards {
     grid-template-columns: 1fr;
   }
 
-  .vendedoresGrid {
+  .controls {
+    flex-direction: column;
+  }
+
+  .searchBar {
+    min-width: 100%;
+  }
+
+  .filters {
+    width: 100%;
+  }
+
+  .filterBtn {
+    flex: 1;
+  }
+
+  .visitasGrid {
     grid-template-columns: 1fr;
   }
 
-  .estadisticas {
-    grid-template-columns: 1fr;
+  .visitaFooter {
+    flex-direction: column;
   }
 }

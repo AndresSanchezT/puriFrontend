@@ -21,45 +21,52 @@ export class AdminDashboardLayoutComponent {
       icon: '🏠',
       permission: 'iniciar_sesion',
     },
-    {
-      title: 'Usuarios',
-      icon: '👥',
-      permission: 'registrar_usuario',
-      subItems: [
-        {
-          title: 'Registrar Usuario',
-          path: '/admin/usuarios/registrar',
-          permission: 'registrar_usuario',
-        },
-        {
-          title: 'Lista Usuarios',
-          path: '/admin/usuarios/lista',
-          permission: 'registrar_usuario',
-        },
-      ],
-    },
+    // {
+    //   title: 'Usuarios',
+    //   icon: '👥',
+    //   permission: 'registrar_usuario',
+    //   subItems: [
+    //     {
+    //       title: 'Registrar Usuario',
+    //       path: '/admin/usuarios/registrar',
+    //       permission: 'registrar_usuario',
+    //     },
+    //     {
+    //       title: 'Lista Usuarios',
+    //       path: '/admin/usuarios/lista',
+    //       permission: 'registrar_usuario',
+    //     },
+    //   ],
+    // },
     {
       title: 'Clientes',
       icon: '🏢',
       permission: 'mantener_cliente',
-      subItems: [
-        {
-          title: 'Lista Clientes',
-          path: '/admin/clientes/lista',
-          permission: 'mantener_cliente',
-        },
-        {
-          title: 'Asignar Clientes',
-          path: '/admin/clientes/asignar',
-          permission: 'mantener_cliente',
-        },
-      ],
+      path: '/admin/clientes/lista',
     },
+
     {
       title: 'Vendedores',
       icon: '🚗',
       permission: 'buscar_vendedor',
       path: '/admin/vendedores/gestionar',
+    },
+    {
+      title: 'Boletas',
+      icon: '🧾',
+      permission: 'ver_boletas',
+      subItems: [
+        {
+          title: 'Generar Boleta',
+          path: '/admin/boletas/generar',
+          permission: 'registrar_boleta',
+        },
+        {
+          title: 'Lista Boletas',
+          path: '/admin/boletas/lista',
+          permission: 'ver_boletas',
+        },
+      ],
     },
     {
       title: 'Visitas',
@@ -122,7 +129,7 @@ export class AdminDashboardLayoutComponent {
           title: 'Gestionar Reportes',
           path: '/admin/reportes/gestionar',
           permission: 'gestionar_reporte',
-        }
+        },
       ],
     },
   ];

@@ -12,7 +12,10 @@ import { RegistrarPedido } from './pages/pedidos/registrar-pedido/registrar-pedi
 import { ConsultarStock } from './pages/productos/consultar-stock/consultar-stock';
 import { GestionarProductos } from './pages/productos/gestionar-productos/gestionar-productos';
 import { GenerarReportes } from './pages/reportes/generar-reportes/generar-reportes';
-import { Dashboard } from './pages/dashboard/dashboard';
+import { DashboardComponent } from './pages/dashboard/dashboard';
+import { GenerarBoleta } from './pages/boletas/generar-boleta/generar-boleta';
+import { ListaBoletas } from './pages/boletas/lista-boletas/lista-boletas';
+
 
 
 export const adminDashboardRoutes: Routes = [
@@ -22,23 +25,27 @@ export const adminDashboardRoutes: Routes = [
     children: [
       {
         path: 'dashboard',
-        component: Dashboard,
+        component: DashboardComponent,
       },
-      {
-        path: 'usuarios/lista',
-        component: ListaUsuarios,
-      },
-      {
-        path: 'usuarios/registrar',
-        component: RegistrarUsuario,
-      },
+      // {
+      //   path: 'usuarios/lista',
+      //   component: ListaUsuarios,
+      // },
+      // {
+      //   path: 'usuarios/registrar',
+      //   component: RegistrarUsuario,
+      // },
       {
         path: 'clientes/lista',
         component: ListaClientes,
       },
       {
-        path: 'clientes/asignar',
-        component: AsignarCliente,
+        path: 'boletas/generar',
+        component: GenerarBoleta,
+      },
+      {
+        path: 'boletas/lista',
+        component: ListaBoletas,
       },
       {
         path: 'vendedores/gestionar',

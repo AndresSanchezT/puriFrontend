@@ -124,7 +124,8 @@
             }}
           </td>
         </tr>
-        } @else { @for (pedido of datosFiltrados(); track pedido.id) {
+        } @else {
+          @for (pedido of datosFiltrados(); track pedido.id) {
         <tr>
           <td>
             <span class="pedidoId">#{{ pedido.id }}</span>

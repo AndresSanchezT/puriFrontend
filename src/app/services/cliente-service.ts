@@ -64,6 +64,12 @@ export class ClienteService {
   //     );
   // }
 
+  getCountTotalClientes(): Observable<number> {
+    return this.http
+      .get<number>(`${baseUrl}/clientes/total`)
+      .pipe(tap(() => console.log('Solicitando HTTP')));
+  }
+
   getById(id: number): Observable<Cliente> {
     if (id == -1) {
       return of(emptyCliente);

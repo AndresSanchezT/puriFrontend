@@ -50,6 +50,12 @@ export class ProductoService {
     );
   }
 
+  getProductosStockBajo():Observable<number> {
+   return this.http.get<number>(`${baseUrl}/productos/stockBajos`).pipe(
+     tap((resp) => console.log('respuesta', resp)),
+   );
+  }
+
 
   //TODO AÑADIR PAGINACION
   getProducts(options: Options): Observable<ResponseProduct> {
