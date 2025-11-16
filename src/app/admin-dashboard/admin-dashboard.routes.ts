@@ -13,7 +13,6 @@ import { ConsultarStock } from './pages/productos/consultar-stock/consultar-stoc
 import { GestionarProductos } from './pages/productos/gestionar-productos/gestionar-productos';
 import { GenerarReportes } from './pages/reportes/generar-reportes/generar-reportes';
 import { DashboardComponent } from './pages/dashboard/dashboard';
-import { GenerarBoleta } from './pages/boletas/generar-boleta/generar-boleta';
 import { ListaBoletas } from './pages/boletas/lista-boletas/lista-boletas';
 
 
@@ -38,10 +37,6 @@ export const adminDashboardRoutes: Routes = [
       {
         path: 'clientes/lista',
         component: ListaClientes,
-      },
-      {
-        path: 'boletas/generar',
-        component: GenerarBoleta,
       },
       {
         path: 'boletas/lista',

@@ -121,6 +121,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { Pedido } from '../models/pedido.interface';
 import { environment } from '../environments/environment';
+import { DatosProductoConsolidado } from '../models/responses/response-consolidado.interface';
+import { PedidoValidacionDTO } from '../models/responses/item-pedido.interface';
 
 const baseUrl = environment.baseUrl;
 
@@ -147,6 +149,12 @@ export class PedidoService {
       .pipe(tap(() => console.log('Solicitando HTTP')));
   }
 
+  getDatosConsolidado(): Observable<DatosProductoConsolidado[]> {
+    return this.http
+      .get<DatosProductoConsolidado[]>(`${baseUrl}/pedidos/productos-registrados`)
+      .pipe(tap(() => console.log('Solicitando HTTP')));
+  }
+
   /** Obtiene un pedido por ID */
   getById(id: number): Observable<Pedido> {
     return this.http.get<Pedido>(`${baseUrl}/pedidos/${id}`);
@@ -158,10 +166,32 @@ export class PedidoService {
   }
 
   /** Registrar pedido completo (con cliente y vendedor) */
-  registrar(data: Partial<Pedido>, idCliente: number, idVendedor: number): Observable<Pedido> {
-    return this.http.post<Pedido>(`${baseUrl}/pedidos/registrar/${idCliente}/${idVendedor}`, data);
+  // registrar(data: Partial<Pedido>, idCliente: number, idVendedor: number): Observable<Pedido> {
+  //   return this.http.post<Pedido>(`${baseUrl}/pedidos/registrar/${idCliente}/${idVendedor}`, data);
+  // }
+  //TODO VERIFICAR
+  registrar(
+    data: Partial<Pedido>,
+    idCliente: number,
+    idVendedor: number,
+    forzar = false
+  ): Observable<Pedido> {
+    return this.http.post<Pedido>(
+      `${baseUrl}/pedidos/registrar/${idCliente}/${idVendedor}?forzar=${forzar}`,
+      data
+    );
   }
 
+  registrarForzado(
+    data: Partial<Pedido>,
+    idCliente: number,
+    idVendedor: number
+  ): Observable<Pedido> {
+    return this.http.post<Pedido>(
+      `${baseUrl}/pedidos/registrar/${idCliente}/${idVendedor}?forzar=true`,
+      data
+    );
+  }
   /** Actualiza un pedido existente */
   update(id: number, data: Partial<Pedido>): Observable<Pedido> {
     return this.http.put<Pedido>(`${baseUrl}/pedidos/${id}`, data);
@@ -170,5 +200,9 @@ export class PedidoService {
   /** Elimina un pedido */
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${baseUrl}/pedidos/${id}`);
+  }
+
+  validateStock(items: PedidoValidacionDTO): Observable<any[]> {
+    return this.http.post<any[]>(`${baseUrl}/pedidos/validar-pedido`, { items });
   }
 }

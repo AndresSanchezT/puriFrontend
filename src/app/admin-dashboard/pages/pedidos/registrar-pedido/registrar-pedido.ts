@@ -9,6 +9,11 @@ import { FormsModule } from '@angular/forms';
 import { Usuario } from '../../../../models/usuario.interface';
 import { VendedorService } from '../../../../services/vendedor-service';
 import { DetallePedido, Pedido } from '../../../../models/pedido.interface';
+import {
+  itemPedido,
+  PedidoValidacionDTO,
+} from '../../../../models/responses/item-pedido.interface';
+import { catchError, finalize, of, switchMap, tap, throwError } from 'rxjs';
 
 export interface ProductoTemp {
   id_producto: number;
@@ -52,6 +57,7 @@ export class RegistrarPedido {
   productos = signal<Producto[]>([]);
   clienteSeleccionado = signal<Cliente | undefined>(undefined);
   vendedorSeleccionado = signal<number | null>(null);
+  showModalFaltantes = signal(false);
 
   searchCliente = signal('');
   searchProducto = signal('');
@@ -198,7 +204,7 @@ export class RegistrarPedido {
   }
 
   handleConfirmarPedido() {
-    // ✅ VALIDACIONES
+    // 🔍 VALIDACIONES
     if (!this.vendedorSeleccionado()) {
       return this.error.set('Seleccione un vendedor');
     }
@@ -212,10 +218,8 @@ export class RegistrarPedido {
     this.loading.set(true);
     this.error.set('');
 
-    // ✅ Fecha en formato yyyy-MM-dd
     const now = new Date().toISOString().split('T')[0];
 
-    // ✅ Armar el objeto pedido (sin visita, el backend la crea)
     const pedidoData: Pedido = {
       fechaPedido: now,
       estado: 'registrado',
@@ -231,25 +235,78 @@ export class RegistrarPedido {
       })),
     };
 
-    const clienteId = this.clienteSeleccionado()?.id;
-    const vendedorId = this.vendedorSeleccionado();
+    const dto: PedidoValidacionDTO = {
+      items: pedidoData.detallePedidos.map((d) => ({
+        productoId: d.producto.id,
+        cantidadSolicitada: d.cantidad,
+      })),
+    };
 
-    // ✅ Llamada al backend
-    this.pedidoService.registrar(pedidoData, clienteId!, vendedorId!).subscribe({
-      next: (res: any) => {
-        this.success.set('Pedido registrado exitosamente');
-        this.loading.set(false);
-        setTimeout(() => {
-          this.resetForm();
-          this.fetchProductos();
-        }, 2000);
-      },
-      error: (err) => {
-        console.error('❌ Error al registrar pedido:', err);
-        this.error.set(err?.error?.message || 'Error al registrar pedido');
-        this.loading.set(false);
-      },
-    });
+    const clienteId = this.clienteSeleccionado()?.id!;
+    const vendedorId = this.vendedorSeleccionado()!;
+
+    this.pedidoService
+      .validateStock(dto)
+      .pipe(
+        switchMap((faltantes) => {
+          if (faltantes.length > 0) {
+            this.mostrarModalFaltantes(faltantes);
+            return throwError(() => new Error('Faltantes detectados'));
+          }
+
+          // 👉 No hay faltantes, registrar pedido
+          return this.pedidoService.registrar(pedidoData, clienteId, vendedorId);
+        }),
+        tap(() => {
+          this.success.set('Pedido registrado exitosamente');
+          setTimeout(() => {
+            this.resetForm();
+            this.fetchProductos();
+          }, 2000);
+        }),
+        catchError((err) => {
+          if (err.message !== 'Faltantes detectados') {
+            console.error(err);
+            this.error.set(err?.error?.message || 'Error al registrar pedido');
+          }
+          return of(null);
+        }),
+        finalize(() => {
+          this.loading.set(false);
+        })
+      )
+      .subscribe();
+  }
+  //En el modal, si el usuario pulsa “Guardar igual”, ejecutas:
+  // guardarIgual() {
+  //   // cerrar modal y llamar registrar con forzar=true
+  //   this.pedidoService
+  //     .registrar(this.pedido, clienteId, vendedorId, true)
+  //     .pipe(
+  //       tap(() => this.success.set('Pedido registrado con faltantes')),
+  //       catchError((err) => {
+  //         this.error.set(err?.error?.message || 'Error');
+  //         return of(null);
+  //       }),
+  //       finalize(() => this.loading.set(false))
+  //     )
+  //     .subscribe();
+  // }
+
+  //TODO
+  mostrarModalFaltantes(faltantes: any) {}
+  //TODO
+  guardarPedido(forzar: boolean) {
+    // this.pedidoService.registrar(this.pedido, this.idCliente, this.idVendedor, forzar).subscribe({
+    //   next: (resp) => {
+    //     alert('Pedido registrado correctamente!');
+    //     this.showModalFaltantes().set(false);
+    //   },
+    //   error: (err) => {
+    //     console.error(err);
+    //     alert('Error: ' + err.error?.message);
+    //   },
+    // });
   }
   calcularTotales() {
     const subtotal = this.carrito().reduce((sum, i) => sum + i.subtotal, 0);

@@ -1,1 +1,288 @@
-<p>lista-boletas works!</p>,
+<!-- LOADING -->
+@if (loading()) {
+<div class="container">
+  <div class="loading">Cargando boletas...</div>
+</div>
+}
+
+<!-- CONTENIDO -->
+@if (!loading()) {
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <h1>Lista de Boletas</h1>
+      <p>Gestiona las boletas de venta registradas</p>
+    </div>
+  </div>
+
+  <!-- Mensajes -->
+  @if (error() && !showModal()) {
+  <div class="errorMessage">{{ error() }}</div>
+  } @if (succes()) {
+  <div class="successMessage">{{ succes() }}</div>
+  }
+
+  <!-- Stats -->
+  <div class="statsCards">
+    <div class="statCard">
+      <div class="statIcon">📋</div>
+      <div class="statContent">
+        <span class="statLabel">Total Boletas</span>
+        <span class="statValue">{{ boletas().length }}</span>
+      </div>
+    </div>
+
+    <div class="statCard">
+      <div class="statIcon">📝</div>
+      <div class="statContent">
+        <span class="statLabel">Registradas</span>
+        <span class="statValue">
+          {{ boletasRegistradas() }}
+        </span>
+      </div>
+    </div>
+
+    <div class="statCard">
+      <div class="statIcon">✅</div>
+      <div class="statContent">
+        <span class="statLabel">Pagadas</span>
+        <span class="statValue">
+          {{ boletasEmitidas() }}
+        </span>
+      </div>
+    </div>
+
+    <div class="statCard">
+      <div class="statIcon">❌</div>
+      <div class="statContent">
+        <span class="statLabel">Anuladas</span>
+        <span class="statValue">
+          {{ boletasAnuladas() }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controles -->
+  <div class="controls">
+    <!-- Search -->
+    <div class="searchBar">
+      <input
+        #inputSearch
+        type="text"
+        placeholder="Buscar por número de boleta, cliente o pedido..."
+        class="searchInput"
+        [value]="searchTerm()"
+        (input)="searchTerm.set(inputSearch.value)"
+      />
+      <span class="searchIcon">🔍</span>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <button
+        class="filterBtn"
+        [ngClass]="{ active: filtroEstado() === 'todos' }"
+        (click)="filtroEstado.set('todos')"
+      >
+        Todas
+      </button>
+
+      <button
+        class="filterBtn"
+        [ngClass]="{ active: filtroEstado() === 'REGISTRADA' }"
+        (click)="filtroEstado.set('REGISTRADA')"
+      >
+        Registradas
+      </button>
+
+      <button
+        class="filterBtn"
+        [ngClass]="{ active: filtroEstado() === 'PAGADO' }"
+        (click)="filtroEstado.set('PAGADO')"
+      >
+        Pagadas
+      </button>
+
+      <button
+        class="filterBtn"
+        [ngClass]="{ active: filtroEstado() === 'ANULADO' }"
+        (click)="filtroEstado.set('ANULADO')"
+      >
+        Anuladas
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  @if (datosFiltrados().length === 0) {
+  <div class="noData">
+    {{
+      searchTerm() || filtroEstado() !== 'todos'
+        ? 'No se encontraron boletas'
+        : 'No hay boletas registradas'
+    }}
+  </div>
+  } @else {
+
+  <div class="tableContainer">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>N° Boleta</th>
+          <th>Pedido</th>
+          <th>Cliente</th>
+          <th>Fecha Emisión</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (boleta of datosFiltrados(); track boleta.id) {
+        <tr>
+          <td class="numeroBoleta">
+            {{ boleta.codigo }}
+          </td>
+
+          <td>#{{ boleta.pedido.id }}</td>
+
+          <td>{{ boleta.cliente.nombreContacto }}</td>
+
+          <td>{{ boleta.fechaEmision | date:'dd MMM. yyyy, h:mm a'}}</td>
+
+          <td class="totalAmount">S/ {{ boleta.total | number : '1.2-2' }}</td>
+
+          <td>
+            <span
+              [ngClass]="{
+                badgeRegistrada: boleta.estado === 'REGISTRADA',
+                badgeEmitida: boleta.estado === 'PAGADO',
+                badgeAnulada: boleta.estado === 'ANULADO'
+              }"
+            >
+              {{ boleta.estado }}
+            </span>
+          </td>
+
+          <td>
+            <div class="actions">
+              @if (boleta.estado === 'REGISTRADA') {
+              <button
+                class="btnEmitir"
+                (click)="handleOpenModal(boleta, 'emitir')"
+                title="Emitir boleta"
+              >
+                📤
+              </button>
+              } @if (boleta.estado === 'PAGADO') {
+              <button
+                class="btnAnular"
+                (click)="handleOpenModal(boleta, 'anular')"
+                title="Anular boleta"
+              >
+                🚫
+              </button>
+              } @if (boleta.estado === 'ANULADO' && boleta.motivoAnulacion) {
+              <button class="btnInfo" title="Motivo: {{ boleta.motivoAnulacion }}">ℹ️</button>
+              }
+            </div>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  }
+
+  <!-- MODAL -->
+  @if (showModal() && boletaSeleccionada()) {
+
+  <div class="modalOverlay" (click)="!processing() && showModal.set(false)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modalHeader">
+        <h2>{{ modalType() === 'emitir' ? 'Emitir Boleta' : 'Anular Boleta' }}</h2>
+
+        <button class="modalClose" (click)="showModal.set(false)" [disabled]="processing()">
+          ✕
+        </button>
+      </div>
+
+      <div class="modalBody">
+        <div class="boletaInfo">
+          <p><strong>N° Boleta:</strong> {{ boletaSeleccionada()?.codigo }}</p>
+          <p><strong>Cliente:</strong> {{ boletaSeleccionada()?.cliente?.nombreContacto }}</p>
+          <p><strong>Total:</strong> S/ {{ boletaSeleccionada()?.total }}</p>
+        </div>
+
+        @if (modalType() === 'emitir') {
+
+        <div class="warningBox">
+          <span class="warningIcon">⚠️</span>
+          <p>¿Está seguro que desea emitir esta boleta?</p>
+        </div>
+
+        } @else {
+
+        <div class="dangerBox">
+          <span class="dangerIcon">🚫</span>
+          <p>¿Está seguro que desea anular esta boleta?</p>
+        </div>
+
+        <div class="formGroup">
+          <label>Motivo de Anulación *</label>
+          <textarea
+            #inputTextArea
+            rows="4"
+            [disabled]="processing()"
+            [value]="motivoAnulacion()"
+            (input)="motivoAnulacion.set(inputTextArea.value)"
+            placeholder="Ingrese el motivo por el cual se anula la boleta..."
+          >
+          </textarea>
+        </div>
+
+        } @if (error()) {
+        <div class="errorMessage">{{ error() }}</div>
+        }
+      </div>
+
+      <div class="modalFooter">
+        <button class="btnSecondary" (click)="showModal.set(false)" [disabled]="processing()">
+          Cancelar
+        </button>
+
+        <button
+          [ngClass]="modalType() === 'emitir' ? 'btnPrimary' : 'btnDanger'"
+          (click)="
+            modalType() === 'emitir'
+              ? handleActualizarEstado(boletaSeleccionada()!.id, {
+                  nuevoEstado: 'PAGADO',
+                  informacion: motivoAnulacion()
+                })
+              : handleActualizarEstado(boletaSeleccionada()!.id, {
+                  nuevoEstado: 'ANULADO',
+                  informacion: motivoAnulacion()
+                })
+          "
+          [disabled]="processing()"
+        >
+          {{
+            processing()
+              ? 'Procesando...'
+              : modalType() === 'emitir'
+              ? 'Emitir Boleta'
+              : 'Anular Boleta'
+          }}
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+</div>
+
+}

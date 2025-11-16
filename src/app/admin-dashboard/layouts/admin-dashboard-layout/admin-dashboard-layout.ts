@@ -55,18 +55,7 @@ export class AdminDashboardLayoutComponent {
       title: 'Boletas',
       icon: '🧾',
       permission: 'ver_boletas',
-      subItems: [
-        {
-          title: 'Generar Boleta',
-          path: '/admin/boletas/generar',
-          permission: 'registrar_boleta',
-        },
-        {
-          title: 'Lista Boletas',
-          path: '/admin/boletas/lista',
-          permission: 'ver_boletas',
-        },
-      ],
+      path: '/admin/boletas/lista',
     },
     {
       title: 'Visitas',
@@ -123,14 +112,7 @@ export class AdminDashboardLayoutComponent {
       title: 'Reportes',
       icon: '📊',
       permission: 'ver_reportes',
-      path: '/admin/reportes',
-      subItems: [
-        {
-          title: 'Gestionar Reportes',
-          path: '/admin/reportes/gestionar',
-          permission: 'gestionar_reporte',
-        },
-      ],
+      path: '/admin/reportes/gestionar',
     },
   ];
 
