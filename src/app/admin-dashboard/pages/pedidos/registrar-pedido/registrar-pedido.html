@@ -344,7 +344,7 @@
           Limpiar Carrito
         </button>
         <button
-          (click)="step.set(3)"
+          (click)="validarStockAntesDeConfirmar()"
           class="bg-sky-500 hover:bg-sky-600 text-white rounded px-4 py-2 text-sm"
         >
           Continuar a Confirmación →
@@ -353,8 +353,76 @@
     </div>
     }
   </div>
-  }
+  } @if (showModalFaltantes() && productosFaltantes()) {
+  <div
+    class="fixed inset-0 bg-black/20 flex items-center justify-center z-1000 p-5"
+    (click)="showModalFaltantes.set(false)"
+  >
+    <div
+      class="bg-white rounded-xl max-w-[700px] w-full max-h-[90vh] overflow-y-auto shadow-[0_10px_40px_rgba(0,0,0,0.3)] p-5"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- HEADER -->
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold">Productos faltantes</h2>
+        <button
+          class="text-gray-500 hover:text-gray-800 font-bold"
+          (click)="showModalFaltantes.set(false)"
+        >
+          ✕
+        </button>
+      </div>
 
+      <p class="text-slate-600 text-sm mb-4">
+        Te faltan los siguientes productos en stock. ¿Quieres confirmar el pedido o deseas editar?
+      </p>
+
+      <!-- TABLA -->
+      <div class="overflow-x-auto max-h-[60vh] overflow-y-auto border rounded-md">
+        <table class="min-w-full border border-gray-200">
+          <thead class="bg-gray-100 sticky top-0 z-10">
+            <tr>
+              <th class="px-4 py-2 border-b text-left">Producto</th>
+              <th class="px-4 py-2 border-b text-center">Faltan</th>
+              <th class="px-4 py-2 border-b text-center">Stock actual</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (item of productosFaltantes(); track item.productoId) {
+            <tr class="hover:bg-gray-50">
+              <td class="px-4 py-2 border-b">{{ item.nombre }}</td>
+              <td class="px-4 py-2 border-b text-center text-red-600 font-bold">
+                {{ item.cantidadFaltante }}
+              </td>
+              <td class="px-4 py-2 border-b text-center">
+                {{ item.stockActual }}
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="mt-4 flex justify-end gap-3">
+        <button
+          class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+          (click)="showModalFaltantes.set(false)"
+        >
+          Editar pedido
+        </button>
+
+        <button
+          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          (click)="showModalFaltantes.set(false); step.set(3)"
+        >
+          Continuar
+        </button>
+      </div>
+    </div>
+  </div>
+  }
   <!-- STEP 3 -->
   @if (step() === 3) {
   <div class="bg-white rounded-[10px] shadow-md p-7 min-h-[500px]">

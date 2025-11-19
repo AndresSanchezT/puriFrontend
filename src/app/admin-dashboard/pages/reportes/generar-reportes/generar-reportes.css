@@ -79,7 +79,7 @@
 .btnGenerar,
 .btnExcel,
 .btnPDF {
-  padding: 12px 24px;
+  padding: 10px 20px;
   border: none;
   border-radius: 5px;
   font-size: 14px;
@@ -87,6 +87,19 @@
   cursor: pointer;
   transition: all 0.3s;
   white-space: nowrap;
+}
+
+.btnResetear{
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+  background: #ee0d0d;
+  color: white;
 }
 
 .btnGenerar {

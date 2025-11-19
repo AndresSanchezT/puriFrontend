@@ -50,6 +50,8 @@ export class RegistrarPedido {
     });
   }
 
+  pedidoPendiente!: Pedido;
+
   // Signals principales
   step = signal(1);
   clientes = signal<Cliente[]>([]);
@@ -61,6 +63,7 @@ export class RegistrarPedido {
 
   searchCliente = signal('');
   searchProducto = signal('');
+  productosFaltantes = signal<itemPedido[]>([]);
 
   carrito = signal<DetallePedido[]>([]);
   productoTemp = signal<Producto | null>(null);
@@ -117,7 +120,7 @@ export class RegistrarPedido {
   fetchProductos() {
     this.productoService.getAllProductos().subscribe({
       next: (res) => {
-        this.productos.set(res.filter((p) => p.stockActual > 0));
+        this.productos.set(res);
       },
       error: () => this.error.set('Error al cargar productos'),
     });
@@ -135,15 +138,11 @@ export class RegistrarPedido {
 
     if (!producto) return this.error.set('Seleccione un producto');
     if (cantidad <= 0) return this.error.set('La cantidad debe ser mayor a 0');
-    if (cantidad > producto.stockActual)
-      return this.error.set(`Stock insuficiente. Disponible: ${producto.stockActual}`);
 
     const productoExistente = this.carrito().find((i) => i.producto.id === producto.id);
 
     if (productoExistente) {
       const nuevaCantidad = productoExistente.cantidad + cantidad;
-      if (nuevaCantidad > producto.stockActual)
-        return this.error.set(`Stock insuficiente. Disponible: ${producto.stockActual}`);
 
       // ✅ actualiza solo ese producto
       this.carrito.update((carritoActual) =>
@@ -204,24 +203,21 @@ export class RegistrarPedido {
   }
 
   handleConfirmarPedido() {
-    // 🔍 VALIDACIONES
     if (!this.vendedorSeleccionado()) {
       return this.error.set('Seleccione un vendedor');
     }
+
     if (!this.clienteSeleccionado()) {
       return this.error.set('Seleccione un cliente');
     }
+
     if (this.carrito().length === 0) {
-      return this.error.set('Agregue al menos un producto al pedido');
+      return this.error.set('Debe agregar productos');
     }
 
     this.loading.set(true);
-    this.error.set('');
 
-    const now = new Date().toISOString().split('T')[0];
-
-    const pedidoData: Pedido = {
-      fechaPedido: now,
+    this.pedidoPendiente = {
       estado: 'registrado',
       observaciones: this.observaciones() || '',
       subtotal: this.subtotal(),
@@ -235,82 +231,92 @@ export class RegistrarPedido {
       })),
     };
 
-    const dto: PedidoValidacionDTO = {
-      items: pedidoData.detallePedidos.map((d) => ({
-        productoId: d.producto.id,
-        cantidadSolicitada: d.cantidad,
-      })),
-    };
-
-    const clienteId = this.clienteSeleccionado()?.id!;
-    const vendedorId = this.vendedorSeleccionado()!;
-
     this.pedidoService
-      .validateStock(dto)
+      .registrar(
+        this.pedidoPendiente,
+        this.clienteSeleccionado()!.id,
+        this.vendedorSeleccionado()!,
+        true
+      )
       .pipe(
-        switchMap((faltantes) => {
-          if (faltantes.length > 0) {
-            this.mostrarModalFaltantes(faltantes);
-            return throwError(() => new Error('Faltantes detectados'));
-          }
-
-          // 👉 No hay faltantes, registrar pedido
-          return this.pedidoService.registrar(pedidoData, clienteId, vendedorId);
-        }),
         tap(() => {
           this.success.set('Pedido registrado exitosamente');
           setTimeout(() => {
             this.resetForm();
             this.fetchProductos();
-          }, 2000);
+          }, 1500);
         }),
         catchError((err) => {
-          if (err.message !== 'Faltantes detectados') {
-            console.error(err);
-            this.error.set(err?.error?.message || 'Error al registrar pedido');
-          }
+          this.error.set(err?.error?.message || 'Error al registrar');
           return of(null);
         }),
-        finalize(() => {
-          this.loading.set(false);
-        })
+        finalize(() => this.loading.set(false))
       )
       .subscribe();
   }
-  //En el modal, si el usuario pulsa “Guardar igual”, ejecutas:
-  // guardarIgual() {
-  //   // cerrar modal y llamar registrar con forzar=true
-  //   this.pedidoService
-  //     .registrar(this.pedido, clienteId, vendedorId, true)
-  //     .pipe(
-  //       tap(() => this.success.set('Pedido registrado con faltantes')),
-  //       catchError((err) => {
-  //         this.error.set(err?.error?.message || 'Error');
-  //         return of(null);
-  //       }),
-  //       finalize(() => this.loading.set(false))
-  //     )
-  //     .subscribe();
-  // }
 
-  //TODO
-  mostrarModalFaltantes(faltantes: any) {}
-  //TODO
-  guardarPedido(forzar: boolean) {
-    // this.pedidoService.registrar(this.pedido, this.idCliente, this.idVendedor, forzar).subscribe({
-    //   next: (resp) => {
-    //     alert('Pedido registrado correctamente!');
-    //     this.showModalFaltantes().set(false);
-    //   },
-    //   error: (err) => {
-    //     console.error(err);
-    //     alert('Error: ' + err.error?.message);
-    //   },
-    // });
+  validarStockAntesDeConfirmar() {
+    if (this.carrito().length === 0) {
+      return this.error.set('Debe agregar productos al pedido');
+    }
+
+    const dto: PedidoValidacionDTO = {
+      items: this.carrito().map((det) => ({
+        productoId: det.producto.id,
+        cantidadSolicitada: det.cantidad,
+      })),
+    };
+
+    this.loading.set(true);
+
+    this.pedidoService.validateStock(dto).subscribe({
+      next: (faltantes) => {
+        this.loading.set(false);
+
+        if (faltantes.length > 0) {
+          // Mostrar modal con productos faltantes
+          this.productosFaltantes.set(faltantes);
+          this.showModalFaltantes.set(true);
+          console.log(faltantes)
+        } else {
+          // No hay faltantes → pasar a Step 3
+          this.step.set(3);
+        }
+      },
+      error: (err) => {
+        this.loading.set(false);
+        this.error.set(err?.error?.message || 'Error validando stock');
+      },
+    });
+  }
+
+  handleConfirmarPedidoForzado() {
+    //this.showModalFaltantes.set(false);
+
+    this.pedidoService
+      .registrar(
+        this.pedidoPendiente,
+        this.clienteSeleccionado()!.id,
+        this.vendedorSeleccionado()!,
+        true // 🔥 REGISTRO FORZADO
+      )
+      .pipe(
+        tap(() => {
+          this.success.set('Pedido registrado con faltantes');
+          this.resetForm();
+          this.fetchProductos();
+        }),
+        catchError((err) => {
+          this.error.set(err?.error?.message || 'Error');
+          return of(null);
+        }),
+        finalize(() => this.loading.set(false))
+      )
+      .subscribe();
   }
   calcularTotales() {
     const subtotal = this.carrito().reduce((sum, i) => sum + i.subtotal, 0);
-    const igv = +(subtotal * 0.18).toFixed(2);
+    const igv = +(0.0).toFixed(2);
     const total = +(subtotal + igv).toFixed(2);
 
     this.subtotal.set(subtotal);

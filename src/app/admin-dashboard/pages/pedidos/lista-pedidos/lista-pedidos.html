@@ -137,7 +137,7 @@
             </div>
           </td>
           <td>{{ pedido.vendedor?.nombre }}</td>
-          <td>{{ pedido.fechaPedido }}</td>
+          <td>{{ pedido.fechaPedido  | date:'dd MMM. yyyy, h:mm a'}}</td>
           <td>
             <span class="total">S/ {{ pedido.total | number : '1.2-2' }}</span>
           </td>
@@ -215,7 +215,7 @@
         <div class="detailSection">
           <h3>Información del Pedido</h3>
           <p><strong>Vendedor:</strong> {{ pedidoDetalle()?.vendedor?.nombre }}</p>
-          <p><strong>Fecha:</strong> {{ pedidoDetalle()?.fechaPedido }}</p>
+          <p><strong>Fecha:</strong> {{ pedidoDetalle()?.fechaPedido  | date:'dd MMM. yyyy, h:mm a'}}</p>
           <p>
             <strong>Estado:</strong>
             <span class="badge"

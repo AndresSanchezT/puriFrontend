@@ -139,7 +139,7 @@
             <div class="visitaDetails">
               <div class="detailItem">
                 <span class="detailIcon">📅</span>
-                <span>{{ visita.fecha| date: 'mediumDate' }}</span>
+                <span>{{ visita.fecha | date:'dd MMM. yyyy, h:mm a' }}</span>
               </div>
 
               @if (visita.cliente?.telefono) {

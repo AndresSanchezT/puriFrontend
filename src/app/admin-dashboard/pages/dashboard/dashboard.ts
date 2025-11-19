@@ -107,7 +107,7 @@ export class DashboardComponent implements OnInit {
 
         const ventasMes = todosLosPedidos
           .filter((p) => {
-            const fechaPedido = new Date(p.fechaPedido);
+            const fechaPedido = new Date(p.fechaPedido ?? '');
             return (
               fechaPedido.getMonth() === mesActual &&
               fechaPedido.getFullYear() === anioActual &&

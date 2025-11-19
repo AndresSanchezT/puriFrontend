@@ -123,6 +123,7 @@ import { Pedido } from '../models/pedido.interface';
 import { environment } from '../environments/environment';
 import { DatosProductoConsolidado } from '../models/responses/response-consolidado.interface';
 import { PedidoValidacionDTO } from '../models/responses/item-pedido.interface';
+import { ProductoFaltante } from '../models/responses/pedido-faltante.interface';
 
 const baseUrl = environment.baseUrl;
 
@@ -202,7 +203,17 @@ export class PedidoService {
     return this.http.delete<void>(`${baseUrl}/pedidos/${id}`);
   }
 
-  validateStock(items: PedidoValidacionDTO): Observable<any[]> {
-    return this.http.post<any[]>(`${baseUrl}/pedidos/validar-pedido`, { items });
+  validateStock(dto: PedidoValidacionDTO): Observable<any[]> {
+    return this.http.post<any[]>(`${baseUrl}/pedidos/validar-pedido`, dto.items);
+  }
+
+  getFaltantes():Observable<ProductoFaltante[]> {
+    return this.http
+      .get<ProductoFaltante[]>(`${baseUrl}/pedidos/faltantes`)
+      .pipe(tap(() => console.log('Solicitando HTTP')));
+  }
+
+  resetearProductosFaltantes(): Observable<void> {
+    return this.http.delete<void>(`${baseUrl}/pedidos/resetear-faltantes`);
   }
 }

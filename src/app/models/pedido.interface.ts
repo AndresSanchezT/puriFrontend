@@ -8,7 +8,7 @@ export interface Pedido {
   vendedor?: Usuario;
   cliente?: Cliente;
   visita?: Visita;
-  fechaPedido: string;
+  fechaPedido?: string;
   subtotal: number;
   igv: number;
   total: number;
