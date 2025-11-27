@@ -2,6 +2,7 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ClienteService } from '../../../../services/cliente-service';
 import { VisitaService } from '../../../../services/visita-service';
 import { Cliente } from '../../../../models/cliente.interface';
+import { Visita } from '../../../../models/visita.interface';
 
 @Component({
   selector: 'app-registrar-visita',
@@ -20,10 +21,9 @@ export class RegistrarVisita {
   readonly success = signal('');
   readonly searchCliente = signal('');
 
-  readonly formData = signal({
-    id_cliente: '',
-    fecha_visita: '',
-    tipo_visita: 'seguimiento',
+  readonly formData = signal<Visita>({
+    cliente: undefined, // o simplemente omitir esta línea
+    fecha: '',
     estado: 'programada',
     observaciones: '',
   });
@@ -76,13 +76,13 @@ export class RegistrarVisita {
 
     const form = this.formData();
 
-    if (!form.id_cliente) {
+    if (!form.cliente?.id) {
       this.error.set('Debe seleccionar un cliente');
       this.loading.set(false);
       return;
     }
 
-    if (!form.fecha_visita) {
+    if (!form.fecha) {
       this.error.set('Debe ingresar una fecha y hora');
       this.loading.set(false);
       return;
@@ -92,10 +92,9 @@ export class RegistrarVisita {
       next: () => {
         this.success.set('Visita registrada exitosamente');
         this.formData.set({
-          id_cliente: '',
-          fecha_visita: '',
-          tipo_visita: 'seguimiento',
-          estado: 'programada',
+          cliente: undefined,
+          fecha: '',
+          estado: '',
           observaciones: '',
         });
         this.searchCliente.set('');
@@ -110,17 +109,16 @@ export class RegistrarVisita {
   }
 
   /** Seleccionar cliente del dropdown */
-  seleccionarCliente(cliente: Cliente) {
-    this.formData.update((f) => ({ ...f, id_cliente: String(cliente.id) }));
-    this.searchCliente.set(`${cliente.nombreNegocio} - ${cliente.nombreContacto}`);
+  seleccionarCliente(clienteForm: Cliente) {
+    this.formData.update((f) => ({ ...f, cliente: clienteForm  }));
+    this.searchCliente.set(`${clienteForm.nombreNegocio} - ${clienteForm.nombreContacto}`);
   }
 
   /** Limpiar formulario */
   handleLimpiar() {
     this.formData.set({
-      id_cliente: '',
-      fecha_visita: '',
-      tipo_visita: 'seguimiento',
+      cliente: undefined,
+      fecha: '',
       estado: 'programada',
       observaciones: '',
     });

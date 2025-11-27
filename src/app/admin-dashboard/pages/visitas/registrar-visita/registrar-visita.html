@@ -49,29 +49,13 @@
         <label>Fecha y Hora de Visita *</label>
         <input
           type="datetime-local"
-          name="fecha_visita"
-          [value]="formData().fecha_visita"
+          name="fecha"
+          [value]="formData().fecha"
           (input)="handleChange($event)"
           required
         />
       </div>
 
-      <!-- Tipo -->
-      <div class="formGroup">
-        <label>Tipo de Visita *</label>
-        <select
-          name="tipo_visita"
-          [value]="formData().tipo_visita"
-          (change)="handleChange($event)"
-          required
-        >
-          <option value="prospeccion">Prospección</option>
-          <option value="seguimiento">Seguimiento</option>
-          <option value="entrega">Entrega</option>
-          <option value="cobranza">Cobranza</option>
-          <option value="otro">Otro</option>
-        </select>
-      </div>
 
       <!-- Estado -->
       <div class="formGroup">
