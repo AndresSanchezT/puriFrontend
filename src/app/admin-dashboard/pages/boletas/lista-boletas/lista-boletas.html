@@ -150,7 +150,7 @@
 
           <td>#{{ boleta.pedido.id }}</td>
 
-          <td>{{ boleta.cliente.nombreContacto }}</td>
+          <td>{{ boleta.pedido.cliente?.nombreContacto }}</td>
 
           <td>{{ boleta.fechaEmision | date:'dd MMM. yyyy, h:mm a'}}</td>
 
@@ -215,7 +215,7 @@
       <div class="modalBody">
         <div class="boletaInfo">
           <p><strong>N° Boleta:</strong> {{ boletaSeleccionada()?.codigo }}</p>
-          <p><strong>Cliente:</strong> {{ boletaSeleccionada()?.cliente?.nombreContacto }}</p>
+          <p><strong>Cliente:</strong> {{ boletaSeleccionada()?.pedido?.cliente?.nombreContacto }}</p>
           <p><strong>Total:</strong> S/ {{ boletaSeleccionada()?.total }}</p>
         </div>
 

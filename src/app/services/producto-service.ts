@@ -117,6 +117,7 @@ export class ProductoService {
   }
 
   delete(id: number) {
+    this.clearCache();
     return this.http.delete<void>(`${baseUrl}/productos/${id}`);
   }
 

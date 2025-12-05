@@ -23,6 +23,7 @@ export class ListaBoletas {
   boletaSeleccionada = signal<Boleta | null>(null);
   motivoAnulacion = signal('');
   processing = signal(false);
+  cargandoPDF = signal(false);
 
   constructor() {
     this.cargarDatos();
@@ -95,5 +96,31 @@ export class ListaBoletas {
         this.processing.set(false);
       },
     });
+
+    this.abrirBoletaEnNuevaPestaña(id)
   }
+
+  // Alternativa: Abrir el PDF en nueva pestaña
+ abrirBoletaEnNuevaPestaña(boletaId: number): void {
+  const url = `http://localhost:8080/api/boletas/${boletaId}/pdf`;
+  window.open(url, '_blank');
+}
+
+  // Alternativa: Previsualizar PDF en modal
+  // previsualizarBoleta(boletaId: number): void {
+  //   this.cargandoPDF = true;
+
+  //   this.boletaService.generarBoleta(boletaId).subscribe({
+  //     next: (blob: Blob) => {
+  //       const url = window.URL.createObjectURL(blob);
+  //       // Aquí puedes abrir un modal con un iframe
+  //       // this.abrirModalPDF(url);
+  //       this.cargandoPDF = false;
+  //     },
+  //     error: (error) => {
+  //       console.error('Error al generar boleta:', error);
+  //       this.cargandoPDF = false;
+  //     },
+  //   });
+  // }
 }

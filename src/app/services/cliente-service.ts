@@ -70,6 +70,11 @@ export class ClienteService {
       .pipe(tap(() => console.log('Solicitando HTTP')));
   }
 
+  getClientesConDeuda(): Observable<Cliente[]> {
+    return this.http
+      .get<Cliente[]>(`${baseUrl}/clientes/con-deuda`)
+      .pipe(tap(() => console.log('Solicitando HTTP')));
+  }
   getById(id: number): Observable<Cliente> {
     if (id == -1) {
       return of(emptyCliente);
@@ -109,6 +114,7 @@ export class ClienteService {
   }
 
   delete(id: number) {
+     this.clearCache();
     return this.http.delete<void>(`${baseUrl}/clientes/${id}`);
   }
 

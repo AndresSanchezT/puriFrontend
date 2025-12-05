@@ -17,6 +17,12 @@ export class BoletaService {
   boletaCache = new Map<number, Boleta>();
   boletasCache = new Map<string, Boleta[]>();
 
+  generarBoleta(boletaId: number): Observable<Blob> {
+    return this.http.get(`${baseUrl}/boletas/${boletaId}/pdf`, {
+      responseType: 'blob',
+    });
+  }
+
   getAll(): Observable<Boleta[]> {
     const key = 'all-boletas';
     if (this.boletasCache.has(key)) {

@@ -85,7 +85,7 @@
           <tr class="border border-[#f0f0f0] table-row">
             <td class="py-[15px] px-[12px]">#{{ pedido.id }}</td>
             <td class="py-[15px] px-[12px]">{{ pedido.cliente?.nombreNegocio }}</td>
-            <td class="py-[15px] px-[12px]">{{ pedido.fechaPedido }}</td>
+            <td class="py-[15px] px-[12px]">{{ pedido.fechaPedido | date:'dd MMM. yyyy, h:mm a' }}</td>
             <td class="py-[15px] px-[12px] font-bold text-[#27ae60]">S/ {{ pedido.total }}</td>
             <td class="py-[15px] px-[12px]">
               <span

@@ -20,6 +20,7 @@ export class ListaClientes {
   modalMode = signal('create');
   clienteSelected = signal<Cliente | null>(null);
   searchTerm = signal('');
+  filtroActivos = signal<'todos' | 'conDeuda' | 'activos'>('todos');
 
   dataForm = signal<Partial<Cliente>>({
     nombreContacto: '',
@@ -39,7 +40,7 @@ export class ListaClientes {
     this.loadDatos(); // Carga inicial
   }
 
-  private loadDatos() {
+  loadDatos() {
     this.loading.set(true);
     this.service.getAll().subscribe({
       next: (data) => {
@@ -57,16 +58,27 @@ export class ListaClientes {
 
   // Se actualiza automáticamente cada vez que escribes
   datosFiltrados = computed(() => {
-    const term = this.searchTerm().toLowerCase();
+    let lista = this.clientes();
+    if (this.filtroActivos() === 'conDeuda') {
+      lista = lista.filter((c) => c.tieneCredito);
+    }
 
-    if (!term) return this.clientes(); // Si está vacío, muestra todos
-    return this.clientes().filter(
+    if (this.filtroActivos() === 'activos') {
+      lista = lista.filter((c) => c.estado === 'inactivo');
+    }
+
+    const term = this.searchTerm().toLowerCase();
+    if (!term) return lista;
+
+    return lista.filter(
       (p) =>
         p.nombreNegocio.toLowerCase().includes(term) ||
         p.nombreContacto.toLowerCase().includes(term) ||
         p.telefono.includes(term)
     );
   });
+
+  clientesConDeudaList = computed(() => this.clientes().filter((c) => c.tieneCredito === true));
 
   handleDelete(id: number) {
     if (!confirm('¿Está seguro de eliminar este cliente?')) return;
@@ -159,8 +171,8 @@ export class ListaClientes {
         latitud: ent.latitud,
         longitud: ent.longitud,
         tieneCredito: ent.tieneCredito,
-        fechaRegistro:ent.fechaRegistro,
-        fechaActualizacion: ent.fechaActualizacion
+        fechaRegistro: ent.fechaRegistro,
+        fechaActualizacion: ent.fechaActualizacion,
       });
     } else {
       this.resetForm();

@@ -20,6 +20,7 @@ export class ConsultarStock {
   filtroStock = signal('todos'); // 'todos', 'disponible', 'bajo', 'agotado'
   showModal = signal(false);
   productoSeleccionado = signal<Producto | null>(null);
+  
 
   productosDisponibles = computed(() => this.productos().filter((p) => p.estado === 'disponible'));
   productosStockBajo = computed(() =>
