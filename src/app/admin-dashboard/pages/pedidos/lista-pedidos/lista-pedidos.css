@@ -542,3 +542,215 @@
     padding: 8px 5px;
   }
 }
+
+.productosHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.productosHeader h3 {
+  margin: 0;
+}
+
+/* Botones de edición */
+.btnModificar {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btnModificar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.botonesEdicion {
+  display: flex;
+  gap: 10px;
+}
+
+.btnGuardar {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(17, 153, 142, 0.3);
+}
+
+.btnGuardar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(17, 153, 142, 0.4);
+}
+
+.btnCancelar {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(238, 9, 121, 0.3);
+}
+
+.btnCancelar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(238, 9, 121, 0.4);
+}
+
+/* Contenedor para agregar producto */
+.agregarProductoContainer {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: 2px dashed #a0aec0;
+}
+
+.formAgregarProducto {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 15px;
+  align-items: end;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inputGroup label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.selectProducto,
+.inputCantidad,
+.inputPrecio {
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.selectProducto:focus,
+.inputCantidad:focus,
+.inputPrecio:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.selectProducto {
+  cursor: pointer;
+}
+
+.btnAgregar {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: fit-content;
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.btnAgregar:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+}
+
+.btnAgregar:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Inputs en la tabla (modo edición) */
+.inputTableCantidad,
+.inputTablePrecio {
+  width: 100%;
+  padding: 8px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.inputTableCantidad:focus,
+.inputTablePrecio:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.inputTableCantidad {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.inputTablePrecio {
+  font-family: 'Courier New', monospace;
+  color: #27ae60;
+  font-weight: 600;
+}
+
+.unidad {
+  font-size: 11px;
+  color: #7f8c8d;
+  margin-left: 5px;
+  display: inline-block;
+}
+
+/* Botón eliminar en tabla */
+.btnEliminarDetalle {
+  width: 100%;
+  padding: 8px;
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+
+.btnEliminarDetalle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+/* Ajustes para la tabla en modo edición */
+.detalleTable tbody tr {
+  transition: all 0.3s ease;
+}
+
+.detalleTable tbody tr:hover {
+  background: #f8f9fa;
+  transform: scale(1.01);
+}

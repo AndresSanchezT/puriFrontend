@@ -124,8 +124,7 @@
             }}
           </td>
         </tr>
-        } @else {
-          @for (pedido of datosFiltrados(); track pedido.id) {
+        } @else { @for (pedido of datosFiltrados(); track pedido.id) {
         <tr>
           <td>
             <span class="pedidoId">#{{ pedido.id }}</span>
@@ -133,16 +132,17 @@
           <td>
             <div class="clienteInfo">
               <strong>{{ pedido.cliente?.nombreNegocio }}</strong>
-              <span>{{ pedido.cliente?.nombreContacto}}</span>
+              <span>{{ pedido.cliente?.nombreContacto }}</span>
             </div>
           </td>
           <td>{{ pedido.vendedor?.nombre }}</td>
-          <td>{{ pedido.fechaPedido  | date:'dd MMM. yyyy, h:mm a'}}</td>
+          <td>{{ pedido.fechaPedido | date : 'dd MMM. yyyy, h:mm a' }}</td>
           <td>
             <span class="total">S/ {{ pedido.total | number : '1.2-2' }}</span>
           </td>
           <td>
-            <span class="badge"
+            <span
+              class="badge"
               [ngClass]="{
                   'badgeRegistrado' : pedido.estado === 'registrado',
                   'badgeConfirmado' : pedido.estado === 'confirmado',
@@ -202,6 +202,7 @@
       </div>
 
       <div class="modalBody">
+        <!-- Información del Cliente -->
         <div class="detailSection">
           <h3>Información del Cliente</h3>
           <p><strong>Negocio:</strong> {{ pedidoDetalle()?.cliente?.nombreNegocio }}</p>
@@ -212,20 +213,24 @@
           <p><strong>Dirección:</strong> {{ pedidoDetalle()?.cliente?.direccion }}</p>
         </div>
 
+        <!-- Información del Pedido -->
         <div class="detailSection">
           <h3>Información del Pedido</h3>
           <p><strong>Vendedor:</strong> {{ pedidoDetalle()?.vendedor?.nombre }}</p>
-          <p><strong>Fecha:</strong> {{ pedidoDetalle()?.fechaPedido  | date:'dd MMM. yyyy, h:mm a'}}</p>
+          <p>
+            <strong>Fecha:</strong>
+            {{ pedidoDetalle()?.fechaPedido | date : 'dd MMM. yyyy, h:mm a' }}
+          </p>
           <p>
             <strong>Estado:</strong>
-            <span class="badge"
+            <span
+              class="badge"
               [ngClass]="{
-                  'badgeRegistrado' : pedidoDetalle()?.estado === 'registrado',
-                  'badgeConfirmado' : pedidoDetalle()?.estado === 'confirmado',
-                  'badgeEntregado' : pedidoDetalle()?.estado === 'entregado',
-                  'badgeAnulado' :pedidoDetalle()?.estado === 'anulado',
-
-                }"
+                'badgeRegistrado' : pedidoDetalle()?.estado === 'registrado',
+                'badgeConfirmado' : pedidoDetalle()?.estado === 'confirmado',
+                'badgeEntregado' : pedidoDetalle()?.estado === 'entregado',
+                'badgeAnulado' :pedidoDetalle()?.estado === 'anulado',
+              }"
             >
               {{ pedidoDetalle()?.estado }}
             </span>
@@ -235,47 +240,181 @@
           }
         </div>
 
+        <!-- Sección de Productos CON BOTÓN MODIFICAR -->
         <div class="detailSection">
-          <h3>Productos</h3>
+          <div class="productosHeader">
+            <h3>Productos</h3>
+
+            <!-- ✅ NUEVO: Botones de modo edición -->
+            @if (!modoEdicion()) {
+            <button class="btnModificar" (click)="handleActivarEdicion()">✏️ Modificar</button>
+            } @else {
+            <div class="botonesEdicion">
+              <button class="btnGuardar" (click)="handleGuardarCambios()">✅ Guardar</button>
+              <button class="btnCancelar" (click)="handleCancelarEdicion()">❌ Cancelar</button>
+            </div>
+            }
+          </div>
+
+          <!-- ✅ NUEVO: Formulario para agregar producto (solo en modo edición) -->
+          @if (modoEdicion()) {
+          <div class="agregarProductoContainer">
+            <div class="formAgregarProducto">
+              <div class="inputGroup">
+                <label>Producto</label>
+                <select
+                  class="selectProducto"
+                  [value]="productoSeleccionado()?.id || ''"
+                  (change)="handleProductoSeleccionado($any($event.target).value)"
+                >
+                  <option value="">Seleccionar producto...</option>
+                  @for (producto of productosDisponibles(); track producto.id) {
+                  <option [value]="producto.id">
+                    {{ producto.nombre }} ({{ producto.codigo }})
+                  </option>
+                  }
+                </select>
+              </div>
+
+              <div class="inputGroup">
+                <label>Cantidad</label>
+                <input
+                  type="number"
+                  class="inputCantidad"
+                  [value]="cantidadNueva()"
+                  (input)="onCantidadInput($event)"
+                  min="1"
+                />
+              </div>
+
+              <div class="inputGroup">
+                <label>Precio</label>
+                <input
+                  type="number"
+                  class="inputPrecio"
+                  step="0.01"
+                  [value]="precioNuevo()"
+                  (input)="onPrecioInput($event)"
+                  min="0"
+                />
+              </div>
+
+              <button
+                class="btnAgregar"
+                (click)="handleAgregarProducto()"
+                [disabled]="!productoSeleccionado()"
+              >
+                ➕ Agregar
+              </button>
+            </div>
+          </div>
+          }
+
+          <!-- Tabla de productos -->
           <table class="detalleTable">
             <thead>
               <tr>
                 <th>Producto</th>
-                <th>Cantidad</th>
-                <th>Precio Unit.</th>
-                <th>Subtotal</th>
+                <th style="width: 100px">Cantidad</th>
+                <th style="width: 120px">Precio Unit.</th>
+                <th style="width: 120px">Subtotal</th>
+                @if (modoEdicion()) {
+                <th style="width: 80px">Acciones</th>
+                }
               </tr>
             </thead>
             <tbody>
-              @for (detalle of pedidoDetalle()?.detallePedidos; track detalle.id) {
+              @for (detalle of detallesEditados(); track detalle.id) {
               <tr>
                 <td>
                   <strong>{{ detalle.producto.nombre }}</strong
                   ><br />
                   <span class="codigo">{{ detalle.producto.codigo }}</span>
                 </td>
+
+                <!-- ✅ MODO EDICIÓN: Inputs editables -->
+                @if (modoEdicion()) {
+                <td>
+                  <input
+                    type="number"
+                    class="inputTableCantidad"
+                    [value]="detalle.cantidad"
+                    (input)="handleCantidadChange(detalle.id!, $any($event.target).value)"
+                    min="1"
+                  />
+                  <span class="unidad">{{ detalle.producto.unidadMedida }}</span>
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    class="inputTablePrecio"
+                    step="0.01"
+                    [value]="detalle.precioUnitario"
+                    (input)="handlePrecioChange(detalle.id!, $any($event.target).value)"
+                    min="0"
+                  />
+                </td>
+                } @else {
+                <!-- MODO VISTA: Solo texto -->
                 <td>{{ detalle.cantidad }} {{ detalle.producto.unidadMedida }}</td>
                 <td>S/ {{ detalle.precioUnitario | number : '1.2-2' }}</td>
-                <td>S/ {{ detalle.subtotal | number : '1.2-2' }}</td>
+                }
+
+                <td>
+                  <strong
+                    >S/ {{ detalle.cantidad * detalle.precioUnitario | number : '1.2-2' }}</strong
+                  >
+                </td>
+
+                <!-- ✅ BOTÓN ELIMINAR (solo en modo edición) -->
+                @if (modoEdicion()) {
+                <td>
+                  <button
+                    class="btnEliminarDetalle"
+                    (click)="handleEliminarDetalle(detalle.id!)"
+                    title="Eliminar"
+                  >
+                    🗑️
+                  </button>
+                </td>
+                }
               </tr>
               }
             </tbody>
           </table>
         </div>
 
+        <!-- Totales (usa los totales editados si está en modo edición) -->
         <div class="detailSection">
           <div class="totalesModal">
             <div class="totalRow">
               <span>Subtotal:</span>
-              <span>S/ {{ pedidoDetalle()?.subtotal | number : '1.2-2' }}</span>
+              <span
+                >S/
+                {{
+                  (modoEdicion() ? totalesEditados().subtotal : pedidoDetalle()?.subtotal)
+                    | number : '1.2-2'
+                }}</span
+              >
             </div>
             <div class="totalRow">
               <span>IGV (18%):</span>
-              <span>S/ {{ pedidoDetalle()?.igv | number : '1.2-2' }}</span>
+              <span
+                >S/
+                {{
+                  (modoEdicion() ? totalesEditados().igv : pedidoDetalle()?.igv) | number : '1.2-2'
+                }}</span
+              >
             </div>
             <div class="totalRow totalFinal">
               <span>TOTAL:</span>
-              <span>S/ {{ pedidoDetalle()?.total | number : '1.2-2' }}</span>
+              <span
+                >S/
+                {{
+                  (modoEdicion() ? totalesEditados().total : pedidoDetalle()?.total)
+                    | number : '1.2-2'
+                }}</span
+              >
             </div>
           </div>
         </div>
