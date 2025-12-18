@@ -152,7 +152,7 @@
 
           <td>{{ boleta.pedido.cliente?.nombreContacto }}</td>
 
-          <td>{{ boleta.fechaEmision | date:'dd MMM. yyyy, h:mm a'}}</td>
+          <td>{{ boleta.fechaEmision | date : 'dd MMM. yyyy, h:mm a' }}</td>
 
           <td class="totalAmount">S/ {{ boleta.total | number : '1.2-2' }}</td>
 
@@ -172,11 +172,11 @@
             <div class="actions">
               @if (boleta.estado === 'REGISTRADA') {
               <button
-                class="btnEmitir"
-                (click)="handleOpenModal(boleta, 'emitir')"
-                title="Emitir boleta"
+                class="btnPagarIcons"
+                (click)="handleOpenModal(boleta, 'pagar')"
+                title="Pagar boleta"
               >
-                📤
+                ➡️💰
               </button>
               } @if (boleta.estado === 'PAGADO') {
               <button
@@ -189,6 +189,15 @@
               } @if (boleta.estado === 'ANULADO' && boleta.motivoAnulacion) {
               <button class="btnInfo" title="Motivo: {{ boleta.motivoAnulacion }}">ℹ️</button>
               }
+              <div>
+                <button
+                  class="btnEmitir"
+                  (click)="handleOpenModal(boleta, 'emitir')"
+                  title="Imprimir Boleta"
+                >
+                  📤
+                </button>
+              </div>
             </div>
           </td>
         </tr>
@@ -205,7 +214,15 @@
   <div class="modalOverlay" (click)="!processing() && showModal.set(false)">
     <div class="modal" (click)="$event.stopPropagation()">
       <div class="modalHeader">
-        <h2>{{ modalType() === 'emitir' ? 'Emitir Boleta' : 'Anular Boleta' }}</h2>
+        <h2>
+          {{
+            modalType() === 'emitir'
+              ? 'Generar Boleta'
+              : modalType() === 'pagar'
+              ? 'Pagar Boleta'
+              : 'Anular Boleta'
+          }}
+        </h2>
 
         <button class="modalClose" (click)="showModal.set(false)" [disabled]="processing()">
           ✕
@@ -215,7 +232,9 @@
       <div class="modalBody">
         <div class="boletaInfo">
           <p><strong>N° Boleta:</strong> {{ boletaSeleccionada()?.codigo }}</p>
-          <p><strong>Cliente:</strong> {{ boletaSeleccionada()?.pedido?.cliente?.nombreContacto }}</p>
+          <p>
+            <strong>Cliente:</strong> {{ boletaSeleccionada()?.pedido?.cliente?.nombreContacto }}
+          </p>
           <p><strong>Total:</strong> S/ {{ boletaSeleccionada()?.total }}</p>
         </div>
 
@@ -223,11 +242,32 @@
 
         <div class="warningBox">
           <span class="warningIcon">⚠️</span>
-          <p>¿Está seguro que desea emitir esta boleta?</p>
+          <p>¿Está seguro que desea generar esta boleta?</p>
         </div>
 
+        } @else if (modalType() === 'pagar') {
+        <div
+          [ngClass]="{
+                warningContainerPagar: modalType() === 'pagar',
+                warningBox: modalType() === 'emitir',
+              }"
+        >
+          <span class="warningIcon">⚠️</span>
+          <p>¿Está seguro que desea pagar esta boleta?</p>
+        </div>
+        <div class="formGroup">
+          <label>Agregar Observación</label>
+          <textarea
+            #inputTextArea
+            rows="4"
+            [disabled]="processing()"
+            [value]="motivoAnulacion()"
+            (input)="motivoAnulacion.set(inputTextArea.value)"
+            placeholder="Opcional:  Ingrese alguna observacion al pagar la boleta"
+          >
+          </textarea>
+        </div>
         } @else {
-
         <div class="dangerBox">
           <span class="dangerIcon">🚫</span>
           <p>¿Está seguro que desea anular esta boleta?</p>
@@ -256,29 +296,50 @@
           Cancelar
         </button>
 
+        @if (modalType()==='pagar') {
         <button
-          [ngClass]="modalType() === 'emitir' ? 'btnPrimary' : 'btnDanger'"
+          [ngClass]="modalType() === 'pagar' ? 'btnPrimary' : 'btnDanger'"
           (click)="
-            modalType() === 'emitir'
-              ? handleActualizarEstado(boletaSeleccionada()!.id, {
-                  nuevoEstado: 'PAGADO',
-                  informacion: motivoAnulacion()
-                })
-              : handleActualizarEstado(boletaSeleccionada()!.id, {
-                  nuevoEstado: 'ANULADO',
-                  informacion: motivoAnulacion()
-                })
+            handleActualizarEstado(boletaSeleccionada()!.id, {
+              nuevoEstado: 'PAGADO',
+              informacion: motivoAnulacion()
+            })
           "
+          [disabled]="processing()"
+        >
+          {{ processing() ? 'Procesando...' : 'Pagar Boleta' }}
+        </button>
+        } @else if (modalType()==='anular') {
+          <button
+          class="btnDanger"
+          (click)="
+            handleActualizarEstado(boletaSeleccionada()!.id, {
+              nuevoEstado: 'ANULADO',
+              informacion: motivoAnulacion()
+            })
+          "
+          [disabled]="processing()"
+        >
+          {{ processing() ? 'Procesando...' : 'Anular Boleta' }}
+        </button>
+        }
+        @else{
+        <button
+          [ngClass]="
+            modalType() === 'emitir'
+              ? 'btnPrimary'
+              : 'btnDanger'
+          "
+          (click)="genererBoleta(boletaSeleccionada()!.id)"
           [disabled]="processing()"
         >
           {{
             processing()
               ? 'Procesando...'
-              : modalType() === 'emitir'
-              ? 'Emitir Boleta'
-              : 'Anular Boleta'
+              : 'Generar Boleta'
           }}
         </button>
+        }
       </div>
     </div>
   </div>

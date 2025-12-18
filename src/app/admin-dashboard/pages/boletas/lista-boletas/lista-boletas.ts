@@ -96,15 +96,16 @@ export class ListaBoletas {
         this.processing.set(false);
       },
     });
-
-    this.abrirBoletaEnNuevaPestaña(id)
+  }
+  genererBoleta(id: number) {
+    this.abrirBoletaEnNuevaPestaña(id);
   }
 
   // Alternativa: Abrir el PDF en nueva pestaña
- abrirBoletaEnNuevaPestaña(boletaId: number): void {
-  const url = `http://localhost:8080/api/boletas/${boletaId}/pdf`;
-  window.open(url, '_blank');
-}
+  abrirBoletaEnNuevaPestaña(boletaId: number): void {
+    const url = `http://localhost:8080/api/boletas/${boletaId}/pdf`;
+    window.open(url, '_blank');
+  }
 
   // Alternativa: Previsualizar PDF en modal
   // previsualizarBoleta(boletaId: number): void {

@@ -262,11 +262,39 @@
   background: #3498db;
   color: white;
 }
+.btnPagar {
+  padding: 12px 24px;
+  background: #28ca71;
+  color: #2c3e50;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btnPagarIcons {
+  padding: 10px 6px;
+  background: #28ca71;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
 
 .btnEmitir:hover {
   background: #2980b9;
   transform: scale(1.1);
 }
+.btnPagar:hover {
+  background: #11ac57;
+  transform: scale(1.1);
+}
+
 
 .btnAnular {
   background: #e74c3c;
@@ -276,6 +304,15 @@
 .btnAnular:hover {
   background: #c0392b;
   transform: scale(1.1);
+}
+
+.warningContainerPagar{
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: #28ca71;
+  padding: 15px;
+  border-radius: 5px;
 }
 
 .btnInfo {
