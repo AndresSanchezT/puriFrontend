@@ -1,18 +1,23 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { AuthService, LoginResponse } from '../../../services/auth-service';
 
 @Component({
   selector: 'dashboard',
   standalone: true,
   imports: [RouterLink, RouterLinkActive, RouterOutlet],
-  templateUrl: './admin-dashboard-layout.html',
+  templateUrl: './admin-dashboard-layout.html'
 })
 export class AdminDashboardLayoutComponent {
   private router = inject(Router);
+  authService = inject(AuthService)
 
-  // Simulación de usuario
-  user = signal({ nombre: 'Juan Pérez', rol: 'administrador' });
+  nombreUsuario = signal('');
+  rolUsuario = signal('');
 
+  constructor() {
+    this.loadUserFromLocalStorage();
+  }
   // Menú principal
   menuItems = [
     {
@@ -123,5 +128,19 @@ export class AdminDashboardLayoutComponent {
     const current = { ...this.expandedItems() };
     current[index] = !current[index];
     this.expandedItems.set(current);
+  }
+
+  private loadUserFromLocalStorage(): void {
+    const userData = sessionStorage.getItem('user_data');
+
+    if (userData) {
+      const user: LoginResponse = JSON.parse(userData);
+      this.nombreUsuario.set(user.nombre ?? 'Usuario');
+      this.rolUsuario.set(user.role ?? 'Usuario');
+    }
+  }
+
+  logout(): void {
+    this.authService.logout()
   }
 }

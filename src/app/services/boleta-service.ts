@@ -1,10 +1,10 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../environments/environment';
 import { Boleta } from '../models/boleta.interface';
 import { Observable, of, tap } from 'rxjs';
 import { EstadoBoleta } from '../models/responses/response-estado.interface';
-import { text } from 'stream/consumers';
+
 
 const baseUrl = environment.baseUrl;
 
@@ -17,12 +17,12 @@ export class BoletaService {
   boletaCache = new Map<number, Boleta>();
   boletasCache = new Map<string, Boleta[]>();
 
-  generarBoleta(boletaId: number): Observable<Blob> {
-    return this.http.get(`${baseUrl}/boletas/${boletaId}/pdf`, {
+  generarBoleta(id: number): Observable<HttpResponse<Blob>> {
+    return this.http.get(`http://localhost:8080/api/boletas/${id}/pdf`, {
       responseType: 'blob',
+      observe: 'response',
     });
   }
-
   getAll(): Observable<Boleta[]> {
     const key = 'all-boletas';
     if (this.boletasCache.has(key)) {

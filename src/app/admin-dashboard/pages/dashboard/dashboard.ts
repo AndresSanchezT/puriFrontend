@@ -26,7 +26,7 @@ export class DashboardComponent implements OnInit {
 
   error = signal('');
   success = signal('');
-
+  nombreUsuario = signal('');
   loading = signal(true);
 
   stats = signal({
@@ -41,7 +41,16 @@ export class DashboardComponent implements OnInit {
   pedidosRecientes = signal<Pedido[]>([]);
 
   ngOnInit() {
+    this.loadUserFromLocalStorage();
     this.fetchDashboardData();
+  }
+  private loadUserFromLocalStorage(): void {
+    const userData = sessionStorage.getItem('user_data');
+
+    if (userData) {
+      const user = JSON.parse(userData);
+      this.nombreUsuario.set(user.nombre ?? 'Usuario');
+    }
   }
 
   fetchDashboardData() {

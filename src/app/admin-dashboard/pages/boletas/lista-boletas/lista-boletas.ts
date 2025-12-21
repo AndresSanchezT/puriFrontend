@@ -98,13 +98,20 @@ export class ListaBoletas {
     });
   }
   genererBoleta(id: number) {
-    this.abrirBoletaEnNuevaPestaña(id);
-  }
-
-  // Alternativa: Abrir el PDF en nueva pestaña
-  abrirBoletaEnNuevaPestaña(boletaId: number): void {
-    const url = `http://localhost:8080/api/boletas/${boletaId}/pdf`;
-    window.open(url, '_blank');
+    this.processing.set(true);
+    this.boletaService.generarBoleta(id).subscribe({
+      next: (response) => {
+        const blob = response.body!;
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        this.processing.set(false);
+        setTimeout(() => window.URL.revokeObjectURL(url), 100);
+      },
+      error: (error) => {
+        console.error('Error al generar boleta:', error);
+        this.processing.set(false);
+      },
+    });
   }
 
   // Alternativa: Previsualizar PDF en modal
