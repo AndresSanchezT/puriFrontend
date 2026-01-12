@@ -126,6 +126,16 @@ import { PedidoValidacionDTO } from '../models/responses/item-pedido.interface';
 import { ProductoFaltante } from '../models/responses/pedido-faltante.interface';
 
 const baseUrl = environment.baseUrl;
+interface CambiarEstadoDTO {
+  nuevoEstado: string;
+  motivoAnulacion?: string;
+}
+
+interface RespuestaEstado {
+  success: boolean;
+  message: string;
+  nuevoEstado?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class PedidoService {
@@ -215,5 +225,17 @@ export class PedidoService {
 
   resetearProductosFaltantes(): Observable<void> {
     return this.http.delete<void>(`${baseUrl}/pedidos/resetear-faltantes`);
+  }
+
+   cambiarEstado(pedidoId: number, nuevoEstado: string, motivoAnulacion?: string): Observable<RespuestaEstado> {
+    const body: CambiarEstadoDTO = {
+      nuevoEstado,
+      ...(motivoAnulacion && { motivoAnulacion })
+    };
+
+    return this.http.patch<RespuestaEstado>(
+      `${baseUrl}/pedidos/${pedidoId}/estado`,
+      body
+    );
   }
 }

@@ -5,4 +5,6 @@ export interface DatosProductoConsolidado {
   stockActual: number;
   stockMinimo: number;
   estado: string;
+  unidadMedida: string;
+  cantidadesPorPedido?: string;
 }

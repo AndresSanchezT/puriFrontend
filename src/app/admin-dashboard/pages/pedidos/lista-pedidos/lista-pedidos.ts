@@ -151,20 +151,54 @@ export class ListaPedidos {
     }
   }
 
+  /**
+   * Maneja el cambio de estado de un pedido
+   */
   handleCambiarEstado(pedidoId: number, nuevoEstado: string) {
-    if (!confirm(`¿Cambiar estado del pedido a "${nuevoEstado}"?`)) return;
-
-    const pedido = this.pedidos().find((p) => p.id === pedidoId);
+    const pedido = this.pedidos().find(p => p.id === pedidoId);
     if (!pedido) return;
 
-    const actualizado: Pedido = { ...pedido, estado: nuevoEstado };
+    // Mensajes personalizados según el estado
+    const mensajes: Record<string, string> = {
+      'entregado': '¿Marcar este pedido como ENTREGADO?',
+      'anulado': '¿Está seguro de ANULAR este pedido?'
+    };
 
-    this.pedidoService.update(pedidoId, actualizado).subscribe({
-      next: () => {
-        this.pedidos.update((arr) => arr.map((p) => (p.id === pedidoId ? actualizado : p)));
-        this.success.set('Estado actualizado correctamente');
+    const mensaje = mensajes[nuevoEstado] || `¿Cambiar estado a "${nuevoEstado}"?`;
+    
+    if (!confirm(mensaje)) return;
+
+    // Si es anulación, solicitar motivo
+    let motivoAnulacion: string | undefined;
+    if (nuevoEstado === 'anulado') {
+      motivoAnulacion = prompt('Motivo de la anulación (opcional):') || undefined;
+    }
+
+    // Llamar al servicio
+    this.pedidoService.cambiarEstado(pedidoId, nuevoEstado, motivoAnulacion).subscribe({
+      next: (response) => {
+        // Actualizar el estado localmente
+        this.pedidos.update(arr => 
+          arr.map(p => p.id === pedidoId 
+            ? { ...p, estado: nuevoEstado }
+            : p
+          )
+        );
+        
+        this.success.set(response.message || 'Estado actualizado correctamente');
+        this.error.set('');
+        
+        // Limpiar mensaje después de 3 segundos
+        setTimeout(() => this.success.set(''), 3000);
       },
-      error: () => this.error.set('Error al actualizar el estado'),
+      error: (err) => {
+        const errorMsg = err.error?.message || 'Error al actualizar el estado';
+        this.error.set(errorMsg);
+        this.success.set('');
+        
+        // Limpiar mensaje después de 5 segundos
+        setTimeout(() => this.error.set(''), 5000);
+      }
     });
   }
 

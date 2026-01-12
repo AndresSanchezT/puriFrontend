@@ -18,20 +18,14 @@ export class BoletaService {
   boletasCache = new Map<string, Boleta[]>();
 
   generarBoleta(id: number): Observable<HttpResponse<Blob>> {
-    return this.http.get(`http://localhost:8080/api/boletas/${id}/pdf`, {
+    return this.http.get(`${baseUrl}/boletas/${id}/pdf`, {
       responseType: 'blob',
       observe: 'response',
     });
   }
   getAll(): Observable<Boleta[]> {
-    const key = 'all-boletas';
-    if (this.boletasCache.has(key)) {
-      const cached = this.boletasCache.get(key) ?? [];
-      return of(cached);
-    }
     return this.http.get<Boleta[]>(`${baseUrl}/boletas`).pipe(
-      tap((resp) => console.log('respuesta', resp)),
-      tap((resp) => this.boletasCache.set(key, resp))
+      tap((resp) => console.log('respuesta', resp))
     );
   }
 

@@ -35,9 +35,7 @@
               stroke="currentColor"
               stroke-width="2"
             >
-              <path
-                d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
-              ></path>
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
             <input
@@ -72,11 +70,7 @@
               class="form-input password-input"
               required
             />
-            <button
-              type="button"
-              class="toggle-password"
-              (click)="togglePassword()"
-            >
+            <button type="button" class="toggle-password" (click)="togglePassword()">
               <svg
                 *ngIf="!showPassword"
                 xmlns="http://www.w3.org/2000/svg"
@@ -106,7 +100,7 @@
         </div>
 
         @if(this.errorMessage){
-          <div class="error-message">{{errorMessage}}</div>
+        <div class="error-message">{{ errorMessage }}</div>
         }
 
         <!-- Remember & Forgot -->
@@ -115,14 +109,28 @@
             <input type="checkbox" class="checkbox" />
             <span>Recordarme</span>
           </label>
-          <button type="button" class="forgot-link">
-            ¿Olvidaste tu contraseña?
-          </button>
+          <button type="button" class="forgot-link">¿Olvidaste tu contraseña?</button>
         </div>
 
         <!-- Submit Button -->
-        <button type="button" class="submit-btn" (click)="onSubmit()">
-          Iniciar Sesión
+        <button type="button" class="submit-btn" (click)="onSubmit()" [disabled]="isLoading">
+          @if(!isLoading){
+          <span>Iniciar Sesión</span>
+          } @if(isLoading){
+          <span *ngIf="isLoading" class="spinner-wrapper">
+            <svg class="spinner" viewBox="0 0 50 50">
+              <circle
+                class="spinner-path"
+                cx="25"
+                cy="25"
+                r="20"
+                fill="none"
+                stroke-width="5"
+              ></circle>
+            </svg>
+            Cargando...
+          </span>
+          }
         </button>
       </div>
     </div>

@@ -51,7 +51,7 @@ export class ListaBoletas {
     return boletas.filter((b) => {
       const coincideBusqueda =
         !term ||
-        b.cliente.nombreContacto.toLowerCase().includes(term) ||
+        b.pedido.cliente?.nombreContacto?.toLowerCase().includes(term) ||
         b.pedido.id?.toString().includes(term) ||
         b.codigo.toLowerCase().includes(term);
 
