@@ -22,6 +22,8 @@ export class GenerarReportes {
 
   datosProductoConsolidado = signal<DatosProductoConsolidado[]>([]);
   productosFaltantes = signal<ProductoFaltante[]>([]);
+  diaConsolidado = signal<'hoy' | 'manana'>('manana');
+  diaBoletas = signal<'hoy' | 'manana'>('manana');
 
   pedidosAgrupados = new Map<number | 'SIN_REPARTIDOR', Pedido[]>();
 
@@ -104,6 +106,16 @@ export class GenerarReportes {
     });
   }
 
+  onConsolidadChange(event: Event) {
+    const valor = (event.target as HTMLSelectElement).value as 'hoy' | 'manana';
+    this.diaConsolidado.set(valor);
+  }
+
+  onBoletasChange(event: Event) {
+    const valor = (event.target as HTMLSelectElement).value as 'hoy' | 'manana';
+    this.diaBoletas.set(valor);
+  }
+
   // ==============================
   // ABRIR MODAL Y CARGAR DATOS
   // ==============================
@@ -112,8 +124,16 @@ export class GenerarReportes {
     this.error.set('');
     this.loadingConsolidado.set(true);
 
+    const dia = this.diaConsolidado();
+
+    // ✅ Llamar al servicio según el día seleccionado
+    const consolidado$ =
+      dia === 'hoy'
+        ? this.pedidoService.getDatosConsolidadoDeHoy()
+        : this.pedidoService.getDatosConsolidadoDeManana();
+
     forkJoin({
-      consolidado: this.pedidoService.getDatosConsolidadoDeManana(),
+      consolidado: consolidado$,
       faltantes: this.pedidoService.getFaltantes(),
     }).subscribe({
       next: ({ consolidado, faltantes }) => {
@@ -124,6 +144,7 @@ export class GenerarReportes {
       error: (err) => {
         this.loadingConsolidado.set(false);
         this.error.set('Error cargando datos del consolidado');
+        console.error(err);
       },
     });
   }
@@ -154,204 +175,202 @@ export class GenerarReportes {
     });
   }
 
-  exportarAPDF(tipo: 'hoy' | 'manana' = 'hoy') {
+  exportarAPDF(tipo: 'hoy' | 'manana') {
+    // =========================
+    // OBTENER PEDIDOS
+    // =========================
+    const pedidos = (tipo === 'hoy' ? this.pedidosHoy() : this.pedidosManana()).sort((a, b) => {
+      const nombreA = (a.cliente?.nombreContacto ?? '').toLowerCase();
+      const nombreB = (b.cliente?.nombreContacto ?? '').toLowerCase();
+      return nombreA.localeCompare(nombreB);
+    });
 
-  // =========================
-  // OBTENER PEDIDOS
-  // =========================
-  const pedidos = (tipo === 'hoy' ? this.pedidosHoy() : this.pedidosManana()).sort((a, b) => {
-    const nombreA = (a.cliente?.nombreContacto ?? '').toLowerCase();
-    const nombreB = (b.cliente?.nombreContacto ?? '').toLowerCase();
-    return nombreA.localeCompare(nombreB);
-  });
-
-  if (!pedidos || pedidos.length === 0) {
-    Swal.fire('Sin datos', 'No hay pedidos para generar el PDF', 'warning');
-    return;
-  }
-
-  // =========================
-  // AGRUPAR PEDIDOS POR REPARTIDOR
-  // =========================
-  const pedidosAgrupados = new Map<number | 'SIN_REPARTIDOR', Pedido[]>();
-
-  pedidos.forEach((pedido) => {
-    const key = pedido.idRepartidor ?? 'SIN_REPARTIDOR';
-
-    if (!pedidosAgrupados.has(key)) {
-      pedidosAgrupados.set(key, []);
+    if (!pedidos || pedidos.length === 0) {
+      Swal.fire('Sin datos', 'No hay pedidos para generar el PDF', 'warning');
+      return;
     }
 
-    pedidosAgrupados.get(key)!.push(pedido);
-  });
+    // =========================
+    // AGRUPAR PEDIDOS POR REPARTIDOR
+    // =========================
+    const pedidosAgrupados = new Map<number | 'SIN_REPARTIDOR', Pedido[]>();
 
-  // =========================
-  // CONFIG PDF
-  // =========================
-  const doc = new jsPDF('portrait', 'mm', 'a4');
-  const pageWidth = 210;
-  const pageHeight = 297;
-  const margin = 10;
-  const rowHeight = 8;
-  let y = 20;
+    pedidos.forEach((pedido) => {
+      const key = pedido.idRepartidor ?? 'SIN_REPARTIDOR';
 
-  // Fecha
-  const fecha = new Date();
-  if (tipo === 'manana') fecha.setDate(fecha.getDate() + 1);
-
-  const fechaFormateada = fecha.toLocaleDateString('es-PE', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-
-  // =========================
-  // CHECK Y X
-  // =========================
-  const dibujarCheck = (x: number, y: number) => {
-    doc.setDrawColor(0, 128, 0);
-    doc.setLineWidth(0.4);
-    doc.line(x, y - 1, x + 1, y);
-    doc.line(x + 1, y, x + 3, y - 2.5);
-  };
-
-  const dibujarX = (x: number, y: number) => {
-    doc.setDrawColor(255, 0, 0);
-    doc.setLineWidth(0.4);
-    doc.line(x, y - 2, x + 2.5, y);
-    doc.line(x + 2.5, y - 2, x, y);
-  };
-
-  // =========================
-  // COLUMNAS
-  // =========================
-  const cols = {
-    numero: 6,
-    cliente: 10,
-    repartidor: 55,
-    efectivo: 85,
-    yapePlin: 110,
-    credito1: 135,
-    credito2: 157,
-    credito3: 179,
-    pagado: 200,
-  };
-
-  const dibujarLineasVerticales = (yInicio: number, yFin: number) => {
-    doc.setLineWidth(0.2);
-    doc.setDrawColor(150, 150, 150);
-    Object.values(cols).slice(1).forEach(x => {
-      doc.line(x - 2, yInicio, x - 2, yFin);
-    });
-  };
-
-  const headers = [
-    { text: '#', x: cols.numero },
-    { text: 'CLIENTE', x: cols.cliente },
-    { text: 'REP.', x: cols.repartidor },
-    { text: 'EFECT.', x: cols.efectivo },
-    { text: 'Y/P', x: cols.yapePlin },
-    { text: 'CRÉDITOS', x: cols.credito1 + 21 },
-    { text: 'PAG.', x: cols.pagado },
-  ];
-
-  // =========================
-  // ENCABEZADO DE CADA HOJA
-  // =========================
-  const dibujarEncabezadoPagina = (titulo: string, total: number) => {
-    y = 20;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.text('HOJA DE CUADRE BOLETAS', margin, 10);
-
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text(titulo, margin, 15);
-
-    doc.text(`Fecha: ${fechaFormateada}`, pageWidth - margin, 10, { align: 'right' });
-    doc.text(`Total de boletas: ${total}`, pageWidth - margin, 15, { align: 'right' });
-
-    y = 25;
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    headers.forEach(h => doc.text(h.text, h.x, y));
-    doc.line(margin, y + 1, pageWidth - margin, y + 1);
-    dibujarLineasVerticales(y - 4, y + 1);
-
-    y += 6;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-  };
-
-  // =========================
-  // RECORRER GRUPOS
-  // =========================
-  let primeraPagina = true;
-
-  for (const [key, lista] of pedidosAgrupados.entries()) {
-
-
-    if (!primeraPagina) doc.addPage();
-    primeraPagina = false;
-
-    const titulo =
-      key === 'SIN_REPARTIDOR'
-        ? 'Pedidos SIN repartidor asignado'
-        : `Repartidor: ${this.obtenerNombreVendedor(key as number)}`;
-
-    dibujarEncabezadoPagina(titulo, lista.length);
-
-    let contador = 1;
-
-    lista.forEach((pedido) => {
-
-      if (y > pageHeight - margin - 10) {
-        doc.addPage();
-        dibujarEncabezadoPagina(titulo, lista.length);
+      if (!pedidosAgrupados.has(key)) {
+        pedidosAgrupados.set(key, []);
       }
 
-      const yInicio = y - 4;
-
-      const cliente = pedido.cliente?.nombreContacto ?? '-';
-      const repartidor = this.obtenerNombreVendedor(pedido.idRepartidor);
-
-      const efectivo = Number(pedido.efectivo ?? 0);
-      const yape = Number(pedido.yape ?? 0);
-      const plin = Number(pedido.plin ?? 0);
-      const credito = Number(pedido.credito ?? 0);
-
-      let yapePlin = '';
-      if (yape > 0 && plin > 0) yapePlin = `${yape}Y-${plin}P`;
-      else if (yape > 0) yapePlin = `${yape}Y`;
-      else if (plin > 0) yapePlin = `${plin}P`;
-
-      doc.text(contador.toString(), cols.numero, y);
-      doc.text(cliente, cols.cliente, y, { maxWidth: 40 });
-      doc.text(repartidor, cols.repartidor, y, { maxWidth: 25 });
-      doc.text(efectivo > 0 ? efectivo.toFixed(2) : '', cols.efectivo, y);
-      doc.text(yapePlin, cols.yapePlin, y);
-
-      credito === 0 ? dibujarCheck(cols.pagado, y) : dibujarX(cols.pagado, y);
-
-      const yFin = y + 2;
-      dibujarLineasVerticales(yInicio, yFin);
-      doc.line(margin, yFin, pageWidth - margin, yFin);
-
-      y += rowHeight;
-
-      contador++;
+      pedidosAgrupados.get(key)!.push(pedido);
     });
-  }
 
-  // =========================
-  // ABRIR PDF
-  // =========================
-  const blob = doc.output('blob');
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
+    // =========================
+    // CONFIG PDF
+    // =========================
+    const doc = new jsPDF('portrait', 'mm', 'a4');
+    const pageWidth = 210;
+    const pageHeight = 297;
+    const margin = 10;
+    const rowHeight = 8;
+    let y = 20;
+
+    // Fecha
+    const fecha = new Date();
+    if (tipo === 'manana') fecha.setDate(fecha.getDate() + 1);
+
+    const fechaFormateada = fecha.toLocaleDateString('es-PE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+
+    // =========================
+    // CHECK Y X
+    // =========================
+    const dibujarCheck = (x: number, y: number) => {
+      doc.setDrawColor(0, 128, 0);
+      doc.setLineWidth(0.4);
+      doc.line(x, y - 1, x + 1, y);
+      doc.line(x + 1, y, x + 3, y - 2.5);
+    };
+
+    const dibujarX = (x: number, y: number) => {
+      doc.setDrawColor(255, 0, 0);
+      doc.setLineWidth(0.4);
+      doc.line(x, y - 2, x + 2.5, y);
+      doc.line(x + 2.5, y - 2, x, y);
+    };
+
+    // =========================
+    // COLUMNAS
+    // =========================
+    const cols = {
+      numero: 6,
+      cliente: 10,
+      repartidor: 55,
+      efectivo: 85,
+      yapePlin: 110,
+      credito1: 135,
+      credito2: 157,
+      credito3: 179,
+      pagado: 200,
+    };
+
+    const dibujarLineasVerticales = (yInicio: number, yFin: number) => {
+      doc.setLineWidth(0.2);
+      doc.setDrawColor(150, 150, 150);
+      Object.values(cols)
+        .slice(1)
+        .forEach((x) => {
+          doc.line(x - 2, yInicio, x - 2, yFin);
+        });
+    };
+
+    const headers = [
+      { text: '#', x: cols.numero },
+      { text: 'CLIENTE', x: cols.cliente },
+      { text: 'REP.', x: cols.repartidor },
+      { text: 'EFECT.', x: cols.efectivo },
+      { text: 'Y/P', x: cols.yapePlin },
+      { text: 'CRÉDITOS', x: cols.credito1 + 21 },
+      { text: 'PAG.', x: cols.pagado },
+    ];
+
+    // =========================
+    // ENCABEZADO DE CADA HOJA
+    // =========================
+    const dibujarEncabezadoPagina = (titulo: string, total: number) => {
+      y = 20;
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.text('HOJA DE CUADRE BOLETAS', margin, 10);
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(titulo, margin, 15);
+
+      doc.text(`Fecha: ${fechaFormateada}`, pageWidth - margin, 10, { align: 'right' });
+      doc.text(`Total de boletas: ${total}`, pageWidth - margin, 15, { align: 'right' });
+
+      y = 25;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      headers.forEach((h) => doc.text(h.text, h.x, y));
+      doc.line(margin, y + 1, pageWidth - margin, y + 1);
+      dibujarLineasVerticales(y - 4, y + 1);
+
+      y += 6;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+    };
+
+    // =========================
+    // RECORRER GRUPOS
+    // =========================
+    let primeraPagina = true;
+
+    for (const [key, lista] of pedidosAgrupados.entries()) {
+      if (!primeraPagina) doc.addPage();
+      primeraPagina = false;
+
+      const titulo =
+        key === 'SIN_REPARTIDOR'
+          ? 'Pedidos SIN repartidor asignado'
+          : `Repartidor: ${this.obtenerNombreVendedor(key as number)}`;
+
+      dibujarEncabezadoPagina(titulo, lista.length);
+
+      let contador = 1;
+
+      lista.forEach((pedido) => {
+        if (y > pageHeight - margin - 10) {
+          doc.addPage();
+          dibujarEncabezadoPagina(titulo, lista.length);
+        }
+
+        const yInicio = y - 4;
+
+        const cliente = pedido.cliente?.nombreContacto ?? '-';
+        const repartidor = this.obtenerNombreVendedor(pedido.idRepartidor);
+
+        const efectivo = Number(pedido.efectivo ?? 0);
+        const yape = Number(pedido.yape ?? 0);
+        const plin = Number(pedido.plin ?? 0);
+        const credito = Number(pedido.credito ?? 0);
+
+        let yapePlin = '';
+        if (yape > 0 && plin > 0) yapePlin = `${yape}Y-${plin}P`;
+        else if (yape > 0) yapePlin = `${yape}Y`;
+        else if (plin > 0) yapePlin = `${plin}P`;
+
+        doc.text(contador.toString(), cols.numero, y);
+        doc.text(cliente, cols.cliente, y, { maxWidth: 40 });
+        doc.text(repartidor, cols.repartidor, y, { maxWidth: 25 });
+        doc.text(efectivo > 0 ? efectivo.toFixed(2) : '', cols.efectivo, y);
+        doc.text(yapePlin, cols.yapePlin, y);
+
+        credito === 0 ? dibujarCheck(cols.pagado, y) : dibujarX(cols.pagado, y);
+
+        const yFin = y + 2;
+        dibujarLineasVerticales(yInicio, yFin);
+        doc.line(margin, yFin, pageWidth - margin, yFin);
+
+        y += rowHeight;
+
+        contador++;
+      });
+    }
+
+    // =========================
+    // ABRIR PDF
+    // =========================
+    const blob = doc.output('blob');
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
 
   getTituloReporte() {
     const titulos: Record<string, string> = {
@@ -410,7 +429,8 @@ export class GenerarReportes {
     // Encabezado principal
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('CONSOLIDADO DE PRODUCTOS', pageWidth / 2, 8, { align: 'center' });
+    const diaTexto = this.diaConsolidado() === 'hoy' ? 'HOY' : 'MAÑANA';
+    doc.text(`CONSOLIDADO DE PRODUCTOS - ${diaTexto}`, pageWidth / 2, 8, { align: 'center' });
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
@@ -527,5 +547,16 @@ export class GenerarReportes {
     const pdfUrl = URL.createObjectURL(pdfBlob);
     window.open(pdfUrl, '_blank');
     setTimeout(() => URL.revokeObjectURL(pdfUrl), 1000);
+  }
+  generarOtroReporte() {
+    // Implementar según el tipo de reporte seleccionado
+    console.log('Generar reporte:', this.tipoReporte());
+    console.log('Desde:', this.fechaInicio(), 'Hasta:', this.fechaFin());
+
+    Swal.fire({
+      icon: 'info',
+      title: 'Función en desarrollo',
+      text: 'Este tipo de reporte se implementará próximamente',
+    });
   }
 }

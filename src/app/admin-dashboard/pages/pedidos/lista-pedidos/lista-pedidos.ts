@@ -245,6 +245,25 @@ export class ListaPedidos {
     this.detallesEditados.update((detalles) => detalles.filter((d) => d.id !== detalleId));
   }
 
+  eliminarPedidosAntiguos() {
+    if (confirm('¿Estás seguro de eliminar todos los pedidos de ayer hacia atrás?')) {
+      this.pedidoService.eliminarPedidosAntiguos().subscribe({
+        next: (response) => {
+          // ✅ Filtrar los pedidos antiguos sin recargar
+          const hoy = new Date();
+          hoy.setHours(0, 0, 0, 0);
+
+          this.pedidos.update((pedidos) => pedidos.filter((p) => new Date(p.fechaPedido!) >= hoy));
+
+          alert(`✅ ${response.mensaje}\nEliminados: ${response.eliminados}`);
+        },
+        error: (error) => {
+          alert(`❌ Error: ${error.error?.error || error.message}`);
+        },
+      });
+    }
+  }
+
   handleEliminarPedido(idPedido: number) {
     if (
       confirm('¿Estás seguro de que deseas eliminar este Pedido? Esta acción no se puede deshacer.')

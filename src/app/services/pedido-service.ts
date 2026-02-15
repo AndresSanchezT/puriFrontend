@@ -9,6 +9,7 @@ import { PedidoValidacionDTO } from '../models/responses/item-pedido.interface';
 import { ProductoFaltante } from '../models/responses/pedido-faltante.interface';
 
 const baseUrl = environment.baseUrl;
+
 interface CambiarEstadoDTO {
   nuevoEstado: string;
   motivoAnulacion?: string;
@@ -18,6 +19,12 @@ interface RespuestaEstado {
   success: boolean;
   message: string;
   nuevoEstado?: string;
+}
+
+interface EliminarPedidosResponse {
+  mensaje: string;
+  eliminados: number;
+  fechaLimite?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -52,6 +59,12 @@ export class PedidoService {
   getPedidosTotales(): Observable<number> {
     return this.http
       .get<number>(`${baseUrl}/pedidos/total`)
+      .pipe(tap(() => console.log('Solicitando HTTP')));
+  }
+
+  getDatosConsolidadoDeHoy(): Observable<DatosProductoConsolidado[]> {
+    return this.http
+      .get<DatosProductoConsolidado[]>(`${baseUrl}/pedidos/productos-registrados/hoy`)
       .pipe(tap(() => console.log('Solicitando HTTP')));
   }
 
@@ -107,6 +120,10 @@ export class PedidoService {
   /** Elimina un pedido */
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${baseUrl}/pedidos/${id}`);
+  }
+
+  eliminarPedidosAntiguos(): Observable<EliminarPedidosResponse> {
+    return this.http.delete<EliminarPedidosResponse>(`${baseUrl}/pedidos/antiguos`);
   }
 
   validateStock(dto: PedidoValidacionDTO): Observable<any[]> {
