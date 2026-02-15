@@ -269,6 +269,7 @@
 .btnVer,
 .btnConfirmar,
 .btnEntregar,
+.btnEliminar,
 .btnAnular {
   padding: 6px 10px;
   border: none;
@@ -313,6 +314,16 @@
   background: #c0392b;
   transform: scale(1.1);
 }
+
+.btnEliminar {
+  background: #da1d08;
+}
+
+.btnEliminar:hover {
+  background: #da1d08;
+  transform: scale(1.1);
+}
+
 
 .noData {
   text-align: center;

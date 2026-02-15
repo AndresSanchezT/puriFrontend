@@ -8,7 +8,7 @@
 
     <div class="flex flex-row gap-2">
       <button class="btnGenerar" (click)="generarConsolidado()">
-        GENERAR CONSOLIDADO DE PRODUCTOS
+        GENERAR CONSOLIDADO DE PRODUCTOS DE MAÑANA
       </button>
 
       <button class="btnResetear" (click)="resetearProductosFaltantes()">
@@ -154,14 +154,14 @@
 
   <!-- BOTONES -->
   <div class="flex gap-3 mb-6">
-    <button class="btnGenerar" [disabled]="loading()" (click)="generarReporte()">
-      {{ loading() ? '⏳ Generando...' : '🔍 Generar Reporte' }}
+    <button class="btnGenerar" [disabled]="loading()" (click)="exportarAPDF('hoy')">
+      {{ loading() ? '⏳ Generando...' : '🔍 GENERAR REPORTE BOLETAS DE HOY CON DATOS' }}
     </button>
 
-    @if (datos().length > 0) {
-    <button class="btnExcel" (click)="exportarAExcel()">📗 Exportar Excel</button>
-    <button class="btnPDF" (click)="exportarAPDF()">📕 Exportar PDF</button>
-    }
+    <button class="btnManana" [disabled]="loading()" (click)="exportarAPDF('manana')">
+      {{ loading() ? '⏳ Generando...' : '🔍 GENERAR REPORTE BOLETAS DE MAÑANA' }}
+    </button>
+
   </div>
 
   <!-- LOADING REPORTES -->

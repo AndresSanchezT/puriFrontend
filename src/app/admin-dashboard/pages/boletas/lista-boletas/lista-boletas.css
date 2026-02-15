@@ -249,6 +249,7 @@
 
 .btnEmitir,
 .btnAnular,
+.btnEliminar,
 .btnInfo {
   padding: 8px 12px;
   border: none;
@@ -256,6 +257,16 @@
   cursor: pointer;
   font-size: 16px;
   transition: all 0.3s;
+}
+
+.btnEliminar {
+  background: #da1d08;
+  color: white;
+}
+
+.btnEliminar:hover {
+  background: rgba(172, 24, 8, 0.984);
+  transform: scale(1.1);
 }
 
 .btnEmitir {
@@ -562,6 +573,78 @@
 .btnSecondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.bulkActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.btnGenerarTodas,
+.btnGenerarPagadas,
+.btnGenerarRegistradas {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btnGenerarTodas {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btnGenerarTodas:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btnGenerarPagadas {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white;
+}
+
+.btnGenerarPagadas:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(56, 239, 125, 0.4);
+}
+
+.btnGenerarRegistradas {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.btnGenerarRegistradas:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+}
+
+.btnGenerarTodas:disabled,
+.btnGenerarPagadas:disabled,
+.btnGenerarRegistradas:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 @media (max-width: 768px) {

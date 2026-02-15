@@ -77,6 +77,7 @@
 }
 
 .btnGenerar,
+.btnManana,
 .btnExcel,
 .btnPDF {
   padding: 10px 20px;
@@ -106,9 +107,20 @@
   background: #3498db;
   color: white;
 }
+.btnManana {
+  background: #db34db;
+  color: white;
+}
+
 
 .btnGenerar:hover:not(:disabled) {
   background: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+
+.btnManana:hover:not(:disabled) {
+  background: #a727a7;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
 }
@@ -323,6 +335,7 @@
   }
 
   .btnGenerar,
+  .btnManana,
   .btnExcel,
   .btnPDF {
     width: 100%;

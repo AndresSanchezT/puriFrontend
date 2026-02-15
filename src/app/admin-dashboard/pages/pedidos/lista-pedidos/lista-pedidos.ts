@@ -90,15 +90,15 @@ export class ListaPedidos {
   }
 
   readonly totalPedidosRegistrados = computed(() =>
-    this.pedidos().reduce((count, p) => count + (p.estado === 'registrado' ? 1 : 0), 0)
+    this.pedidos().reduce((count, p) => count + (p.estado === 'registrado' ? 1 : 0), 0),
   );
 
   readonly totalPedidosConfirmados = computed(() =>
-    this.pedidos().reduce((count, p) => count + (p.estado === 'confirmado' ? 1 : 0), 0)
+    this.pedidos().reduce((count, p) => count + (p.estado === 'confirmado' ? 1 : 0), 0),
   );
 
   readonly totalPedidosEntregados = computed(() =>
-    this.pedidos().reduce((count, p) => count + (p.estado === 'entregado' ? 1 : 0), 0)
+    this.pedidos().reduce((count, p) => count + (p.estado === 'entregado' ? 1 : 0), 0),
   );
 
   private fetchVendedores() {
@@ -155,17 +155,17 @@ export class ListaPedidos {
    * Maneja el cambio de estado de un pedido
    */
   handleCambiarEstado(pedidoId: number, nuevoEstado: string) {
-    const pedido = this.pedidos().find(p => p.id === pedidoId);
+    const pedido = this.pedidos().find((p) => p.id === pedidoId);
     if (!pedido) return;
 
     // Mensajes personalizados según el estado
     const mensajes: Record<string, string> = {
-      'entregado': '¿Marcar este pedido como ENTREGADO?',
-      'anulado': '¿Está seguro de ANULAR este pedido?'
+      entregado: '¿Marcar este pedido como ENTREGADO?',
+      anulado: '¿Está seguro de ANULAR este pedido?',
     };
 
     const mensaje = mensajes[nuevoEstado] || `¿Cambiar estado a "${nuevoEstado}"?`;
-    
+
     if (!confirm(mensaje)) return;
 
     // Si es anulación, solicitar motivo
@@ -178,16 +178,13 @@ export class ListaPedidos {
     this.pedidoService.cambiarEstado(pedidoId, nuevoEstado, motivoAnulacion).subscribe({
       next: (response) => {
         // Actualizar el estado localmente
-        this.pedidos.update(arr => 
-          arr.map(p => p.id === pedidoId 
-            ? { ...p, estado: nuevoEstado }
-            : p
-          )
+        this.pedidos.update((arr) =>
+          arr.map((p) => (p.id === pedidoId ? { ...p, estado: nuevoEstado } : p)),
         );
-        
+
         this.success.set(response.message || 'Estado actualizado correctamente');
         this.error.set('');
-        
+
         // Limpiar mensaje después de 3 segundos
         setTimeout(() => this.success.set(''), 3000);
       },
@@ -195,10 +192,10 @@ export class ListaPedidos {
         const errorMsg = err.error?.message || 'Error al actualizar el estado';
         this.error.set(errorMsg);
         this.success.set('');
-        
+
         // Limpiar mensaje después de 5 segundos
         setTimeout(() => this.error.set(''), 5000);
-      }
+      },
     });
   }
 
@@ -231,14 +228,14 @@ export class ListaPedidos {
   handleCantidadChange(detalleId: number, nuevaCantidad: string) {
     const cantidad = Math.max(1, parseInt(nuevaCantidad) || 1);
     this.detallesEditados.update((detalles) =>
-      detalles.map((d) => (d.id === detalleId ? { ...d, cantidad } : d))
+      detalles.map((d) => (d.id === detalleId ? { ...d, cantidad } : d)),
     );
   }
 
   handlePrecioChange(detalleId: number, nuevoPrecio: string) {
     const precio = Math.max(0, parseFloat(nuevoPrecio) || 0);
     this.detallesEditados.update((detalles) =>
-      detalles.map((d) => (d.id === detalleId ? { ...d, precioUnitario: precio } : d))
+      detalles.map((d) => (d.id === detalleId ? { ...d, precioUnitario: precio } : d)),
     );
   }
 
@@ -246,6 +243,32 @@ export class ListaPedidos {
     if (!confirm('¿Eliminar este producto del pedido?')) return;
 
     this.detallesEditados.update((detalles) => detalles.filter((d) => d.id !== detalleId));
+  }
+
+  handleEliminarPedido(idPedido: number) {
+    if (
+      confirm('¿Estás seguro de que deseas eliminar este Pedido? Esta acción no se puede deshacer.')
+    ) {
+      // 🚀 Guardar copia por si hay que revertir
+      const pedidosBackup = [...this.pedidos()];
+
+      this.pedidos.update((lista) => lista.filter((p) => p.id !== idPedido));
+
+      // Llamar al servidor en segundo plano
+      this.pedidoService.delete(idPedido).subscribe({
+        next: () => {
+          this.success.set('Pedido eliminado exitosamente');
+          setTimeout(() => this.success.set(''), 2000);
+        },
+        error: (err: any) => {
+          // ❌ Si falla, REVERTIR los cambios
+          this.pedidos.set(pedidosBackup);
+          console.error('Error al eliminar:', err);
+          this.error.set(err?.error?.mensaje || 'Error al eliminar el pedido');
+          setTimeout(() => this.error.set(''), 5000);
+        },
+      });
+    }
   }
 
   handleProductoSeleccionado(productoId: string) {

@@ -25,6 +25,7 @@ interface ProductoForm {
   selector: 'app-gestionar-productos',
   imports: [CommonModule, FormsModule],
   templateUrl: './gestionar-productos.html',
+  styleUrl: './gestionar-productos.css'
 })
 export class GestionarProductos {
   productService = inject(ProductoService);
@@ -77,7 +78,7 @@ export class GestionarProductos {
       (p) =>
         p.nombre.toLowerCase().includes(term) ||
         p.codigo.toLowerCase().includes(term) ||
-        (p.descripcion && p.descripcion.toLowerCase().includes(term))
+        (p.descripcion && p.descripcion.toLowerCase().includes(term)),
     );
   });
 
@@ -104,11 +105,12 @@ export class GestionarProductos {
     });
   }
   productosDisponibles = computed(
-    () => this.productos().filter((p) => p.stockActual > p.stockMinimo).length
+    () => this.productos().filter((p) => p.stockActual > p.stockMinimo).length,
   );
 
   productosStockBajo = computed(
-    () => this.productos().filter((p) => p.stockActual <= p.stockMinimo && p.stockActual > 0).length
+    () =>
+      this.productos().filter((p) => p.stockActual <= p.stockMinimo && p.stockActual > 0).length,
   );
 
   productosAgotados = computed(() => this.productos().filter((p) => p.stockActual === 0).length);
@@ -138,7 +140,7 @@ export class GestionarProductos {
     request.subscribe({
       next: () => {
         this.success.set(
-          isCreate ? 'Producto creado exitosamente' : 'Producto actualizado exitosamente'
+          isCreate ? 'Producto creado exitosamente' : 'Producto actualizado exitosamente',
         );
 
         // 🔥 Limpiar el caché antes de recargar

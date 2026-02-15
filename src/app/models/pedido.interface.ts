@@ -8,11 +8,16 @@ export interface Pedido {
   vendedor?: Usuario;
   cliente?: Cliente;
   visita?: Visita;
+  idRepartidor?: number,
   fechaPedido?: string;
-  subtotal: number;
-  igv: number;
-  total: number;
-  estado: string;
+  subtotal: number,
+  igv: number,
+  total: number,
+  estado: string,
+  yape?: number,
+  efectivo?: number,
+  plin?: number,
+  credito?: number,
   observaciones: string;
   detallePedidos: DetallePedido[];
 }

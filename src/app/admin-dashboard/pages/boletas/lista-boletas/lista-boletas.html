@@ -10,9 +10,10 @@
 
   <!-- Mensajes -->
   @if (error() && !showModal()) {
-  <div class="errorMessage">{{ error() }}</div>
-  } @if (succes()) {
-  <div class="successMessage">{{ succes() }}</div>
+    <div class="errorMessage">{{ error() }}</div>
+  }
+  @if (succes()) {
+    <div class="successMessage">{{ succes() }}</div>
   }
 
   <!-- Stats -->
@@ -107,234 +108,259 @@
     </div>
   </div>
 
+  <div class="bulkActions">
+    <!-- <button
+      class="btnGenerarTodas"
+      (click)="generarTodasLasBoletasPDF()"
+      [disabled]="generandoMultiple() || datosFiltrados().length === 0"
+      title="Generar todas las boletas filtradas en un PDF"
+    >
+      @if (generandoMultiple()) {
+        <span class="spinner">⏳</span> Generando...
+      } @else {
+        📄 Generar Todas ({{ datosFiltrados().length }})
+      }
+    </button> -->
+
+    <!-- Botones opcionales para generar por estado -->
+    <!-- <button
+      class="btnGenerarPagadas"
+      (click)="generarBoletasPorEstado('PAGADO')"
+      [disabled]="generandoMultiple() || boletasEmitidas() === 0"
+      title="Generar solo boletas pagadas"
+    >
+      💰 Pagadas ({{ boletasEmitidas() }})
+    </button> -->
+
+    <button
+      class="btnGenerarRegistradas"
+      (click)="generarTodasLasBoletasPDFregistradasHoy()"
+      [disabled]="generandoMultiple() || boletasDeHoyRegistrados().length === 0"
+      title="Generar solo boletas registradas"
+    >
+      📝 GENERAR BOLETAS PARA MAÑANA ({{ boletasDeHoyRegistrados().length }})
+    </button>
+  </div>
+
   <!-- Tabla -->
   @if (datosFiltrados().length === 0) {
-  <div class="noData">
-    {{
-      searchTerm() || filtroEstado() !== 'todos'
-        ? 'No se encontraron boletas'
-        : 'No hay boletas registradas'
-    }}
-  </div>
+    <div class="noData">
+      {{
+        searchTerm() || filtroEstado() !== 'todos'
+          ? 'No se encontraron boletas'
+          : 'No hay boletas registradas'
+      }}
+    </div>
   } @else {
+    <div class="tableContainer">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>N° Boleta</th>
+            <th>Pedido</th>
+            <th>Cliente</th>
+            <th>Fecha Emisión</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
 
-  <div class="tableContainer">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>N° Boleta</th>
-          <th>Pedido</th>
-          <th>Cliente</th>
-          <th>Fecha Emisión</th>
-          <th>Total</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
+        <tbody>
+          @for (boleta of datosFiltrados(); track boleta.id) {
+            <tr>
+              <td class="numeroBoleta">
+                {{ boleta.codigo }}
+              </td>
 
-      <tbody>
-        @for (boleta of datosFiltrados(); track boleta.id) {
-        <tr>
-          <td class="numeroBoleta">
-            {{ boleta.codigo }}
-          </td>
+              <td>#{{ boleta.pedido.id }}</td>
 
-          <td>#{{ boleta.pedido.id }}</td>
+              <td>{{ boleta.pedido.cliente?.nombreContacto }}</td>
 
-          <td>{{ boleta.pedido.cliente?.nombreContacto }}</td>
+              <td>{{ boleta.fechaEmision | date: 'dd MMM. yyyy, h:mm a' }}</td>
 
-          <td>{{ boleta.fechaEmision | date : 'dd MMM. yyyy, h:mm a' }}</td>
+              <td class="totalAmount">S/ {{ boleta.total | number: '1.2-2' }}</td>
 
-          <td class="totalAmount">S/ {{ boleta.total | number : '1.2-2' }}</td>
-
-          <td>
-            <span
-              [ngClass]="{
-                badgeRegistrada: boleta.estado === 'REGISTRADA',
-                badgeEmitida: boleta.estado === 'PAGADO',
-                badgeAnulada: boleta.estado === 'ANULADO'
-              }"
-            >
-              {{ boleta.estado }}
-            </span>
-          </td>
-
-          <td>
-            <div class="actions">
-              @if (boleta.estado === 'REGISTRADA') {
-              <button
-                class="btnPagarIcons"
-                (click)="handleOpenModal(boleta, 'pagar')"
-                title="Pagar boleta"
-              >
-                ➡️💰
-              </button>
-              } @if (boleta.estado === 'PAGADO') {
-              <button
-                class="btnAnular"
-                (click)="handleOpenModal(boleta, 'anular')"
-                title="Anular boleta"
-              >
-                🚫
-              </button>
-              } @if (boleta.estado === 'ANULADO' && boleta.motivoAnulacion) {
-              <button class="btnInfo" title="Motivo: {{ boleta.motivoAnulacion }}">ℹ️</button>
-              }
-              <div>
-                <button
-                  class="btnEmitir"
-                  (click)="handleOpenModal(boleta, 'emitir')"
-                  title="Imprimir Boleta"
+              <td>
+                <span
+                  [ngClass]="{
+                    badgeRegistrada: boleta.estado === 'REGISTRADA',
+                    badgeEmitida: boleta.estado === 'PAGADO',
+                    badgeAnulada: boleta.estado === 'ANULADO',
+                  }"
                 >
-                  📤
-                </button>
-              </div>
-            </div>
-          </td>
-        </tr>
-        }
-      </tbody>
-    </table>
-  </div>
+                  {{ boleta.estado }}
+                </span>
+              </td>
 
+              <td>
+                <div class="actions">
+                  @if (boleta.estado === 'REGISTRADA') {
+                    <button
+                      class="btnPagarIcons"
+                      (click)="handleOpenModal(boleta, 'pagar')"
+                      title="Pagar boleta"
+                    >
+                      ➡️💰
+                    </button>
+                  }
+                  @if (boleta.estado === 'PAGADO') {
+                    <button
+                      class="btnAnular"
+                      (click)="handleOpenModal(boleta, 'anular')"
+                      title="Anular boleta"
+                    >
+                      🚫
+                    </button>
+                  }
+                  @if (boleta.estado === 'ANULADO' && boleta.motivoAnulacion) {
+                    <button class="btnInfo" title="Motivo: {{ boleta.motivoAnulacion }}">ℹ️</button>
+                  }
+                  <button
+                    class="btnEmitir"
+                    (click)="handleOpenModal(boleta, 'emitir')"
+                    title="Imprimir Boleta"
+                  >
+                    📤
+                  </button>
+                  <button
+                    class="btnEliminar"
+                    (click)="handleEliminarBoleta(boleta.id!)"
+                    title="Eliminar Pedido"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   }
 
   <!-- MODAL -->
   @if (showModal() && boletaSeleccionada()) {
+    <div class="modalOverlay" (click)="!processing() && showModal.set(false)">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modalHeader">
+          <h2>
+            {{
+              modalType() === 'emitir'
+                ? 'Generar Boleta'
+                : modalType() === 'pagar'
+                  ? 'Pagar Boleta'
+                  : 'Anular Boleta'
+            }}
+          </h2>
 
-  <div class="modalOverlay" (click)="!processing() && showModal.set(false)">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modalHeader">
-        <h2>
-          {{
-            modalType() === 'emitir'
-              ? 'Generar Boleta'
-              : modalType() === 'pagar'
-              ? 'Pagar Boleta'
-              : 'Anular Boleta'
-          }}
-        </h2>
-
-        <button class="modalClose" (click)="showModal.set(false)" [disabled]="processing()">
-          ✕
-        </button>
-      </div>
-
-      <div class="modalBody">
-        <div class="boletaInfo">
-          <p><strong>N° Boleta:</strong> {{ boletaSeleccionada()?.codigo }}</p>
-          <p>
-            <strong>Cliente:</strong> {{ boletaSeleccionada()?.pedido?.cliente?.nombreContacto }}
-          </p>
-          <p><strong>Total:</strong> S/ {{ boletaSeleccionada()?.total }}</p>
+          <button class="modalClose" (click)="showModal.set(false)" [disabled]="processing()">
+            ✕
+          </button>
         </div>
 
-        @if (modalType() === 'emitir') {
+        <div class="modalBody">
+          <div class="boletaInfo">
+            <p><strong>N° Boleta:</strong> {{ boletaSeleccionada()?.codigo }}</p>
+            <p>
+              <strong>Cliente:</strong> {{ boletaSeleccionada()?.pedido?.cliente?.nombreContacto }}
+            </p>
+            <p><strong>Total:</strong> S/ {{ boletaSeleccionada()?.total }}</p>
+          </div>
 
-        <div class="warningBox">
-          <span class="warningIcon">⚠️</span>
-          <p>¿Está seguro que desea generar esta boleta?</p>
-        </div>
-
-        } @else if (modalType() === 'pagar') {
-        <div
-          [ngClass]="{
+          @if (modalType() === 'emitir') {
+            <div class="warningBox">
+              <span class="warningIcon">⚠️</span>
+              <p>¿Está seguro que desea generar esta boleta?</p>
+            </div>
+          } @else if (modalType() === 'pagar') {
+            <div
+              [ngClass]="{
                 warningContainerPagar: modalType() === 'pagar',
                 warningBox: modalType() === 'emitir',
               }"
-        >
-          <span class="warningIcon">⚠️</span>
-          <p>¿Está seguro que desea pagar esta boleta?</p>
-        </div>
-        <div class="formGroup">
-          <label>Agregar Observación</label>
-          <textarea
-            #inputTextArea
-            rows="4"
-            [disabled]="processing()"
-            [value]="motivoAnulacion()"
-            (input)="motivoAnulacion.set(inputTextArea.value)"
-            placeholder="Opcional:  Ingrese alguna observacion al pagar la boleta"
-          >
-          </textarea>
-        </div>
-        } @else {
-        <div class="dangerBox">
-          <span class="dangerIcon">🚫</span>
-          <p>¿Está seguro que desea anular esta boleta?</p>
+            >
+              <span class="warningIcon">⚠️</span>
+              <p>¿Está seguro que desea pagar esta boleta?</p>
+            </div>
+            <div class="formGroup">
+              <label>Agregar Observación</label>
+              <textarea
+                #inputTextArea
+                rows="4"
+                [disabled]="processing()"
+                [value]="motivoAnulacion()"
+                (input)="motivoAnulacion.set(inputTextArea.value)"
+                placeholder="Opcional:  Ingrese alguna observacion al pagar la boleta"
+              >
+              </textarea>
+            </div>
+          } @else {
+            <div class="dangerBox">
+              <span class="dangerIcon">🚫</span>
+              <p>¿Está seguro que desea anular esta boleta?</p>
+            </div>
+
+            <div class="formGroup">
+              <label>Motivo de Anulación *</label>
+              <textarea
+                #inputTextArea
+                rows="4"
+                [disabled]="processing()"
+                [value]="motivoAnulacion()"
+                (input)="motivoAnulacion.set(inputTextArea.value)"
+                placeholder="Ingrese el motivo por el cual se anula la boleta..."
+              >
+              </textarea>
+            </div>
+          }
+          @if (error()) {
+            <div class="errorMessage">{{ error() }}</div>
+          }
         </div>
 
-        <div class="formGroup">
-          <label>Motivo de Anulación *</label>
-          <textarea
-            #inputTextArea
-            rows="4"
-            [disabled]="processing()"
-            [value]="motivoAnulacion()"
-            (input)="motivoAnulacion.set(inputTextArea.value)"
-            placeholder="Ingrese el motivo por el cual se anula la boleta..."
-          >
-          </textarea>
+        <div class="modalFooter">
+          <button class="btnSecondary" (click)="showModal.set(false)" [disabled]="processing()">
+            Cancelar
+          </button>
+
+          @if (modalType() === 'pagar') {
+            <button
+              [ngClass]="modalType() === 'pagar' ? 'btnPrimary' : 'btnDanger'"
+              (click)="
+                handleActualizarEstado(boletaSeleccionada()!.id, {
+                  nuevoEstado: 'PAGADO',
+                  informacion: motivoAnulacion(),
+                })
+              "
+              [disabled]="processing()"
+            >
+              {{ processing() ? 'Procesando...' : 'Pagar Boleta' }}
+            </button>
+          } @else if (modalType() === 'anular') {
+            <button
+              class="btnDanger"
+              (click)="
+                handleActualizarEstado(boletaSeleccionada()!.id, {
+                  nuevoEstado: 'ANULADO',
+                  informacion: motivoAnulacion(),
+                })
+              "
+              [disabled]="processing()"
+            >
+              {{ processing() ? 'Procesando...' : 'Anular Boleta' }}
+            </button>
+          } @else {
+            <button
+              [ngClass]="modalType() === 'emitir' ? 'btnPrimary' : 'btnDanger'"
+              (click)="generarBoletaPDF(boletaSeleccionada()!.id)"
+              [disabled]="processing()"
+            >
+              {{ processing() ? 'Procesando...' : 'Generar Boleta' }}
+            </button>
+          }
         </div>
-
-        } @if (error()) {
-        <div class="errorMessage">{{ error() }}</div>
-        }
-      </div>
-
-      <div class="modalFooter">
-        <button class="btnSecondary" (click)="showModal.set(false)" [disabled]="processing()">
-          Cancelar
-        </button>
-
-        @if (modalType()==='pagar') {
-        <button
-          [ngClass]="modalType() === 'pagar' ? 'btnPrimary' : 'btnDanger'"
-          (click)="
-            handleActualizarEstado(boletaSeleccionada()!.id, {
-              nuevoEstado: 'PAGADO',
-              informacion: motivoAnulacion()
-            })
-          "
-          [disabled]="processing()"
-        >
-          {{ processing() ? 'Procesando...' : 'Pagar Boleta' }}
-        </button>
-        } @else if (modalType()==='anular') {
-          <button
-          class="btnDanger"
-          (click)="
-            handleActualizarEstado(boletaSeleccionada()!.id, {
-              nuevoEstado: 'ANULADO',
-              informacion: motivoAnulacion()
-            })
-          "
-          [disabled]="processing()"
-        >
-          {{ processing() ? 'Procesando...' : 'Anular Boleta' }}
-        </button>
-        }
-        @else{
-        <button
-          [ngClass]="
-            modalType() === 'emitir'
-              ? 'btnPrimary'
-              : 'btnDanger'
-          "
-          (click)="genererBoleta(boletaSeleccionada()!.id)"
-          [disabled]="processing()"
-        >
-          {{
-            processing()
-              ? 'Procesando...'
-              : 'Generar Boleta'
-          }}
-        </button>
-        }
       </div>
     </div>
-  </div>
   }
 </div>
-
-

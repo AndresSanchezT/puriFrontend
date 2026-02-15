@@ -1,120 +1,3 @@
-// import { HttpClient } from '@angular/common/http';
-// import { inject, Injectable } from '@angular/core';
-// import { Pedido } from '../models/pedido.interface';
-// import { Observable, of, tap } from 'rxjs';
-// import { environment } from '../environments/environment';
-
-// const baseUrl = environment.baseUrl;
-
-// const emptyPedido: Pedido = {
-//   id: -1,
-//   vendedor: undefined,
-//   cliente: undefined,
-//   visita: undefined,
-//   fechaPedido: '',
-//   subtotal: 0,
-//   igv: 0,
-//   total: 0,
-//   estado: '',
-//   observaciones: '',
-//   detallePedidos: [],
-// };
-
-// @Injectable({
-//   providedIn: 'root',
-// })
-// export class PedidoService {
-//   constructor() {}
-
-//   http = inject(HttpClient);
-
-//   // TODO implementar paginable
-//   //  clientesCache = new Map<, ResponsePedidos>();
-//   pedidosCache = new Map<number, Pedido>();
-//   allPedidosCache = new Map<string, Pedido[]>();
-
-//   getAll(): Observable<Pedido[]> {
-//     const key = 'all-pedidos';
-//     if (this.allPedidosCache.has(key)) {
-//       const cached = this.allPedidosCache.get(key) ?? [];
-//       return of(cached);
-//     }
-//     return this.http.get<Pedido[]>(`${baseUrl}/pedidos`).pipe(
-//       tap((resp) => console.log('respuesta', resp)),
-//       tap((resp) => this.allPedidosCache.set(key, resp))
-//     );
-//   }
-
-//   // getProducts(options: Options): Observable<ResponseProduct> {
-//   //   const { limit = 9, offset = 0, tipo = '' } = options;
-//   //   const key = `${limit}-${offset}-${tipo}`;
-
-//   //   if (this.productsCache.has(key)) {
-//   //     return of(this.productsCache.get(key)!);
-//   //   }
-
-//   //   return this.http
-//   //     .get<ResponseProduct>(`${baseUrl}/productos`, {
-//   //       params: { limit, offset, tipo },
-//   //     })
-//   //     .pipe(
-//   //       tap((resp) => console.log(resp)),
-//   //       tap((resp) => this.productsCache.set(key, resp))
-//   //     );
-//   // }
-
-//   getById(id: number): Observable<Pedido> {
-//     if (id == -1) {
-//       return of(emptyPedido);
-//     }
-
-//     if (this.pedidosCache.has(id)) {
-//       return of(this.pedidosCache.get(id)!);
-//     }
-
-//     return this.http
-//       .get<Pedido>(`${baseUrl}/pedidos/${id}`)
-//       .pipe(tap((res) => this.pedidosCache.set(id, res)));
-//   }
-
-//   update(id: number, entLike: Partial<Pedido>): Observable<Pedido> {
-//     return this.http
-//       .put<Pedido>(`${baseUrl}/pedidos/${id}`, entLike)
-//       .pipe(tap((res) => this.updateCache(res)));
-//   }
-
-//   create(entLike: Partial<Pedido>): Observable<Pedido> {
-//     return this.http
-//       .post<Pedido>(`${baseUrl}/pedidos`, entLike)
-//       .pipe(tap((res) => this.updateCache(res)));
-//   }
-
-//   registrar(entLike: Partial<Pedido>,idCliente:number,idVendedor:number): Observable<Pedido> {
-//     return this.http
-//       .post<Pedido>(`${baseUrl}/pedidos/registrar/${idCliente}/${idVendedor}`, entLike)
-//       .pipe(tap((res) => this.updateCache(res)));
-//   };
-
-//   updateCache(entidad: Pedido) {
-//     const entidadId = entidad.id;
-
-//     this.pedidosCache.set(entidadId!, entidad);
-
-//     this.allPedidosCache.forEach((res) => {
-//       res.map((res) => (res.id === entidadId ? entidad : res));
-//     });
-
-//     console.log('Caché actualizado');
-//   }
-
-//   delete(id: number) {
-//     return this.http.delete<void>(`${baseUrl}/pedidos/${id}`);
-//   }
-
-//   clearCache() {
-//     this.allPedidosCache.clear();
-//   }
-// }
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -154,15 +37,27 @@ export class PedidoService {
       .pipe(tap(() => console.log('Solicitando HTTP')));
   }
 
+  getPedidosTotalesHoy(): Observable<Pedido[]> {
+    return this.http
+      .get<Pedido[]>(`${baseUrl}/pedidos/reporte/hoy`)
+      .pipe(tap(() => console.log('Solicitando HTTP')));
+  }
+
+  getPedidosTotalesManana(): Observable<Pedido[]> {
+    return this.http
+      .get<Pedido[]>(`${baseUrl}/pedidos/reporte/manana`)
+      .pipe(tap(() => console.log('Solicitando HTTP')));
+  }
+
   getPedidosTotales(): Observable<number> {
     return this.http
       .get<number>(`${baseUrl}/pedidos/total`)
       .pipe(tap(() => console.log('Solicitando HTTP')));
   }
 
-  getDatosConsolidado(): Observable<DatosProductoConsolidado[]> {
+  getDatosConsolidadoDeManana(): Observable<DatosProductoConsolidado[]> {
     return this.http
-      .get<DatosProductoConsolidado[]>(`${baseUrl}/pedidos/productos-registrados`)
+      .get<DatosProductoConsolidado[]>(`${baseUrl}/pedidos/productos-registrados/manana`)
       .pipe(tap(() => console.log('Solicitando HTTP')));
   }
 
@@ -182,25 +77,26 @@ export class PedidoService {
   // }
   //TODO VERIFICAR
   registrar(
-    data: Partial<Pedido>,
+    pedido: Partial<Pedido>,
     idCliente: number,
     idVendedor: number,
-    forzar = false
+    forzar: boolean = false,
+    tipoFecha: 'HOY' | 'MANANA' | 'PASADO_MANANA' = 'HOY',
   ): Observable<Pedido> {
     return this.http.post<Pedido>(
-      `${baseUrl}/pedidos/registrar/${idCliente}/${idVendedor}?forzar=${forzar}`,
-      data
+      `${baseUrl}/pedidos/registrar/${idCliente}/${idVendedor}?forzar=${forzar}&tipoFecha=${tipoFecha}`,
+      pedido,
     );
   }
 
   registrarForzado(
     data: Partial<Pedido>,
     idCliente: number,
-    idVendedor: number
+    idVendedor: number,
   ): Observable<Pedido> {
     return this.http.post<Pedido>(
       `${baseUrl}/pedidos/registrar/${idCliente}/${idVendedor}?forzar=true`,
-      data
+      data,
     );
   }
   /** Actualiza un pedido existente */
@@ -217,7 +113,7 @@ export class PedidoService {
     return this.http.post<any[]>(`${baseUrl}/pedidos/validar-pedido`, dto.items);
   }
 
-  getFaltantes():Observable<ProductoFaltante[]> {
+  getFaltantes(): Observable<ProductoFaltante[]> {
     return this.http
       .get<ProductoFaltante[]>(`${baseUrl}/pedidos/faltantes`)
       .pipe(tap(() => console.log('Solicitando HTTP')));
@@ -227,15 +123,16 @@ export class PedidoService {
     return this.http.delete<void>(`${baseUrl}/pedidos/resetear-faltantes`);
   }
 
-   cambiarEstado(pedidoId: number, nuevoEstado: string, motivoAnulacion?: string): Observable<RespuestaEstado> {
+  cambiarEstado(
+    pedidoId: number,
+    nuevoEstado: string,
+    motivoAnulacion?: string,
+  ): Observable<RespuestaEstado> {
     const body: CambiarEstadoDTO = {
       nuevoEstado,
-      ...(motivoAnulacion && { motivoAnulacion })
+      ...(motivoAnulacion && { motivoAnulacion }),
     };
 
-    return this.http.patch<RespuestaEstado>(
-      `${baseUrl}/pedidos/${pedidoId}/estado`,
-      body
-    );
+    return this.http.patch<RespuestaEstado>(`${baseUrl}/pedidos/${pedidoId}/estado`, body);
   }
 }
